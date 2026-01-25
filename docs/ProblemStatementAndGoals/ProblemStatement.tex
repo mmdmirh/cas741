@@ -4,9 +4,6 @@
 \usepackage{booktabs}
 \usepackage{hyperref}
 
-\newcommand{\progname}{FitCoachAR}
-\newcommand{\authname}{Seyedmohamad Mirhosseininejad}
-
 \title{CAS 741: Problem Statement and Goals\\\progname}
 
 \author{\authname}
@@ -30,17 +27,38 @@
 \end{tabularx}
 \end{table}
 
+% \section{Problem Statement}
+
+% \subsection{Problem}
+% The \textbf{FitCoachAR} system, in its current implementation, is a research prototype which was developed for mobile data analytics course project \cite{1}. Although the core algorithms for the post-processing of pose estimation (such as Kalman filtering and geometric canonicalization) and the "FormScript" language are experimentally validated, the current software architecture is remaining monolithic. It lacks the rigorous software engineering qualities that are required for clinical or commercial deployment contexts.
+
+% To be specific, the system is suffering from the following issues:
+% \begin{itemize}
+%     \item \textbf{Missing Data Persistence:} There is not a structured database to store the longitudinal data of users. This means that calibration parameters and "FormCodes" are lost after each session, which prevents the tracking of long-term progress.
+%     \item \textbf{Configurations are Hardcoded:} The logic of exercises is coupled tightly with the application code. This makes it difficult for the domain experts (physiotherapists) to add new "Super FormCodes" without modification of the source code.
+%     \item \textbf{Validation is Insufficient:} Although the algorithms are working, the codebase is lacking a comprehensive suite of unit tests to guarantee that the geometric calculations are correct across the edge cases.
+% \end{itemize}
+
+
+
 \section{Problem Statement}
+Musculoskeletal injuries during resistance training are frequently caused by improper exercise technique. While personal coaching is effective for injury prevention, it is often inaccessible or expensive. Existing mobile solutions for automated feedback lack rigorous biomechanical validation and often fail to provide actionable correction.
 
-\subsection{Problem}
-The \textbf{FitCoachAR} system, in its current implementation, is a research prototype which was developed for mobile data analytics course project \cite{1}. Although the core algorithms for the post-processing of pose estimation (such as Kalman filtering and geometric canonicalization) and the "FormScript" language are experimentally validated, the current software architecture is remaining monolithic. It lacks the rigorous software engineering qualities that are required for clinical or commercial deployment contexts.
+The project, \textbf{FitCoachAR}, addresses this gap by providing an augmented reality framework for movement analysis. The core problem is to develop a scientifically valid software pipeline that can ingest pose estimation data, apply geometric heuristics to detect deviations (e.g., knee valgus or spinal flexion), and provide feedback. The project leverages a prototype developed for mobile data analytics \cite{1}, refocusing it towards scientific rigor, modularity, and automated verification of the biomechanical algorithms.
 
-To be specific, the system is suffering from the following issues:
-\begin{itemize}
-    \item \textbf{Missing Data Persistence:} There is not a structured database to store the longitudinal data of users. This means that calibration parameters and "FormCodes" are lost after each session, which prevents the tracking of long-term progress.
-    \item \textbf{Configurations are Hardcoded:} The logic of exercises is coupled tightly with the application code. This makes it difficult for the domain experts (physiotherapists) to add new "Super FormCodes" without modification of the source code.
-    \item \textbf{Validation is Insufficient:} Although the algorithms are working, the codebase is lacking a comprehensive suite of unit tests to guarantee that the geometric calculations are correct across the edge cases.
-\end{itemize}
+\section{Goals}
+\begin{enumerate}
+    \item \textbf{Scientific Modularization:} Refactor the existing monolithic backend into decoupled, independently testable scientific computing modules:
+    \begin{itemize}
+        \item \textbf{Pose Estimator:} Handles the interface with computer vision models (MoveNet/MediaPipe) and geometric coordinate normalization.
+        \item \textbf{Rep Counter:} Manages the state machine for cycle detection and phase tracking based on angular velocity.
+        \item \textbf{Feedback Engine:} Executes the ``FormScript'' logic to generate corrective guidance based on biomechanical thresholds.
+    \end{itemize}
+    \item \textbf{Data Persistence \& Analysis:} Integrate a relational database (SQLite) to store user profiles and frame-by-frame biomechanical data, enabling post-session statistical analysis of movement quality.
+    \item \textbf{Validation \& Verification:} Develop a comprehensive automated test suite (Unit Tests) to verify the mathematical correctness of the isolated Feedback and Rep Counter modules, ensuring that the software reliably identifies form errors.
+\end{enumerate}
+
+
 
 \subsection{Inputs and Outputs}
 \begin{itemize}
