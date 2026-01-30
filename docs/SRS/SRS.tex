@@ -189,7 +189,7 @@ description of the unit and the SI name.
   %	\caption{Provide a caption}
 %\end{table}
 
-\plt{Only include the units that your SRS actually uses.}
+
 
 \subsection{Table of Symbols}
 
@@ -234,7 +234,7 @@ $Is\_Valid$ & - & Boolean flag for repetition validity\\
   \bottomrule
 \end{tabular}\\
 
-\plt{Add any other abbreviations or acronyms that you add}
+
 
 \subsection{Mathematical Notation}
 
@@ -573,6 +573,38 @@ Ref.\ By & \dref{GD_KneeAngle}\\
   validation.  Those topics will be addressed in the Verification and Validation
   plan.}
 
+\subsubsection{Instance Models} \label{sec_instance}
+
+This section details the instance models that use the general definitions to provide the necessary solution.
+
+~\newline
+
+\noindent
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+  \hline
+  \rowcolor[gray]{0.9}
+  Number& IM\refstepcounter{instnum}\theinstnum \label{IM_SquatValid}\\
+  \hline
+  Label& \bf Squat Depth Validity Criteria\\
+  \hline
+  Input& $\theta_{knee}$ (\si{\degree})\\
+  \hline
+  Output& $IsValid$ (Boolean)\\
+  \hline
+  Description& 
+  $IsValid = (\theta_{knee} \geq \theta_{thresh})$, where $\theta_{thresh} = 90^\circ$ (or user defined).
+  The squat is considered valid if the knee angle meets or exceeds the threshold.
+  \\
+  \hline
+  Sources& Standard Squat Biomechanics \\
+  \hline
+  Ref.\ By & \rref{R_Verify}\\
+  \hline
+\end{tabular}
+\end{minipage}\\
+
 \section{Requirements}
 
 \subsection{Functional Requirements}
@@ -622,7 +654,7 @@ other. Table~\ref{Table:A_trace} shows the dependencies of theoretical models,
 general definitions, data definitions, instance models, and likely changes on
 the assumptions.
 
-\plt{You will have to modify these tables for your problem.}
+
 
 \plt{The traceability matrix is not generally symmetric.  If GD1 uses A1, that
   means that GD1's derivation or presentation requires invocation of A1.  A1
@@ -761,12 +793,12 @@ instance models, requirements, and data constraints on each other.
 
 \section{Values of Auxiliary Constants}
 
-\plt{Show the values of the symbolic parameters introduced in the report.}
+
 
 \plt{The definition of the requirements will likely call for SYMBOLIC\_CONSTANTS.
 Their values are defined in this section for easy maintenance.}
 
-\plt{The value of FRACTION, for the Maintainability NFR would be given here.}
+
 
 \newpage
 
