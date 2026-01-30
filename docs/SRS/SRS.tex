@@ -14,6 +14,7 @@
 \usepackage{tabularx}
 \usepackage{float}
 \usepackage{siunitx}
+\DeclareSIUnit\pixel{pixel}
 \usepackage{booktabs}
 \usepackage{caption}
 \usepackage{pdflscape}
@@ -128,7 +129,9 @@
 
 \begin{document}
 
-\title{Software Requirements Specification for \progname: subtitle describing software} 
+
+
+\title{Software Requirements Specification for \progname: Automated Squat Analysis System} 
 \author{\authname}
 \date{\today}
 	
@@ -147,8 +150,7 @@
 \begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
 \toprule {\bf Date} & {\bf Version} & {\bf Notes}\\
 \midrule
-Date 1 & 1.0 & Notes\\
-Date 2 & 1.1 & Notes\\
+2026-01-30 & 1.0 & First Draft for CAS 741\\
 \bottomrule
 \end{tabularx}
 
@@ -179,34 +181,15 @@ description of the unit and the SI name.
     \toprule		
     \textbf{symbol} & \textbf{unit} & \textbf{SI}\\
     \midrule 
-    \si{\metre} & length & metre\\
-    \si{\kilogram} & mass	& kilogram\\
+    \si{\degree} & angle & degree (derived)\\
     \si{\second} & time & second\\
-    \si{\celsius} & temperature & centigrade\\
-    \si{\joule} & energy & joule\\
-    \si{\watt} & power & watt (W = \si{\joule\per\second})\\
+    \si{\pixel} & length & pixel (screen coordinates)\\
     \bottomrule
   \end{tabular}
   %	\caption{Provide a caption}
 %\end{table}
 
 \plt{Only include the units that your SRS actually uses.}
-
-\plt{Derived units, like newtons, pascal, etc, should show their derivation
-    (the units they are derived from) if their constituent units are in the
-    table of units (that is, if the units they are derived from are used in the
-    document).  For instance, the derivation of pascals as
-    $\si{\pascal}=\si{\newton\per\square\meter}$ is shown if newtons and m are
-    both in the table.  The derivations of newtons would not be shown if kg and
-    s are not both in the table.}
-
-\plt{The symbol for units named after people use capital letters, but the name
-  of the unit itself uses lower case.  For instance, pascals use the symbol Pa,
-  watts use the symbol W, teslas use the symbol T, newtons use the symbol N,
-  etc.  The one exception to this is degree Celsius.  Details on writing metric
-  units can be found on the 
-  \href{https://www.nist.gov/pml/weights-and-measures/writing-metric-units}
-  {NIST} web-page.}
 
 \subsection{Table of Symbols}
 
@@ -220,11 +203,10 @@ systems.  The symbols are listed in alphabetical order.
 \noindent \begin{longtable*}{l l p{12cm}} \toprule
 \textbf{symbol} & \textbf{unit} & \textbf{description}\\
 \midrule 
-$A_C$ & \si[per-mode=symbol] {\square\metre} & coil surface area
-\\
-$A_\text{in}$ & \si[per-mode=symbol] {\square\metre} & surface area over which
-heat is transferred in
-\\ 
+$\theta$ & \si{\degree} & Interior angle of a joint\\
+$P$ & \si{\pixel} & A point in 2D space $(x, y)$\\
+$\vec{v}$ & - & Vector connecting two keypoints\\
+$Is\_Valid$ & - & Boolean flag for repetition validity\\
 \bottomrule
 \end{longtable*}
 \plt{Use your problems actual symbols.  The si package is a good idea to use for
@@ -246,8 +228,9 @@ heat is transferred in
   PS & Physical System Description\\
   R & Requirement\\
   SRS & Software Requirements Specification\\
-  \progname{} & \plt{put an expanded version of your program name here (as appropriate)}\\
+  \progname{} & FitCoachAR\\
   TM & Theoretical Model\\
+  RGB & Red Green Blue (Video format)\\
   \bottomrule
 \end{tabular}\\
 
@@ -337,282 +320,79 @@ heat is transferred in
 
 \section{Introduction}
 
-\plt{The introduction section is written to introduce the problem.  It starts
-  general and focuses on the problem domain. The general advice is to start with
-a paragraph or two that describes the problem, followed by a ``roadmap''
-paragraph.  A roadmap orients the reader by telling them what sub-sections to
-expect in the Introduction section.}
-
 \subsection{Purpose of Document}
-
-\plt{This section summarizes the purpose of the SRS document.  It does not focus
-  on the problem itself.  The problem is described in the ``Problem
-  Description'' section (Section~\ref{Sec_pd}).  The purpose is for the document
-  in the context of the project itself, not in the context of this course.
-  Although the ``purpose'' of the document is to get a grade, you should not
-  mention this.  Instead, ``fake it'' as if this is a real project.  The purpose
-  section will be similar between projects.  The purpose of the document is the
-  purpose of the SRS, including communication, planning for the design stage,
-  etc.}
+The purpose of this document is to specify the functional and non-functional requirements for \progname{}. This document is intended to be used by the development team for implementation and verification, and by the stakeholders to ensure the system meets the biomechanical analysis needs.
 
 \subsection{Scope of Requirements} 
-
-\plt{Modelling the real world requires simplification.  The full complexity of
-  the actual physics, chemistry, biology is too much for existing models, and
-  for existing computational solution techniques.  Rather than say what is in
-  the scope, it is usually easier to say what is not.  You can think of it as
-  the scope is initially everything, and then it is constrained to create the
-  actual scope.  For instance, the problem can be restricted to 2 dimensions, or
-  it can ignore the effect of temperature (or pressure) on the material
-  properties, etc.}  
-
-\plt{The scope section is related to the assumptions section
-  (Section~\ref{sec_assumpt}).  However, the scope and the assumptions are not
-  at the same level of abstraction.  The scope is at a high level.  The focus is
-  on the ``big picture'' assumptions.  The assumptions section lists, and
-  describes, all of the assumptions.}
-
-\plt{The scope section is relevant for later determining typical values of inputs. The scope should make it clear what inputs are reasonable to expect. This is a distinction between scope and context (context is a later section).  Scope affects the inputs while context affects how the software will be used.}
+The scope of \progname{} is limited to the \textbf{2D analysis} of human movement using a single camera. The system currently focuses on the \textbf{Squat} exercise. It ignores 3D depth perception (z-axis) unless inferred, and assumes a stable camera position. The system calculates geometric angles based on projected keypoints and does not measure force, torque, or muscle activity.
 
 \subsection{Characteristics of Intended Reader} \label{sec_IntendedReader}
-
-\plt{This section summarizes the skills and knowledge of the readers of the
-  SRS.  It does NOT have the same purpose as the ``User Characteristics''
-  section (Section~\ref{SecUserCharacteristics}).  The intended readers are the
-  people that will read, review and maintain the SRS.  They are the people that
-  will conceivably design the software that is intended to meet the
-  requirements.  The user, on the other hand, is the person that uses the
-  software that is built.  They may never read this SRS document.  Of course,
-  the same person could be a ``user'' and an ``intended reader.''}
-
-\plt{The intended reader characteristics should be written as unambiguously and
-  as specifically as possible.  Rather than say, the user should have an
-  understanding of physics, say what kind of physics and at what level.  For
-  instance, is high school physics adequate, or should the reader have had a
-  graduate course on advanced quantum mechanics?}
+The intended reader is expected to have knowledge of:
+\begin{itemize}
+    \item Basic biomechanics (joint angles, flexion, extension).
+    \item Software Engineering principles (SRS structure).
+    \item Basic Linear Algebra (vectors, dot products).
+\end{itemize}
 
 \subsection{Organization of Document}
-
-\plt{This section provides a roadmap of the SRS document.  It will help the
-  reader orient themselves.  It will provide direction that will help them
-  select which sections they want to read, and in what order.  This section will
-  be similar between project.}
-
-\plt{Include a reference to the template (\citet{SmithAndLai2005, SmithEtAl2007,
-  SmithAndKoothoor2016}) you are using in the documentation in the Organization of
-  the Document section.}
+This document follows the Scientific Computing SRS template. It starts with the System Description, followed by the specific physics/math models (TMs, DDs, IMs), and concludes with the Requirements.
   
 
 \section{General System Description}
 
-This section provides general information about the system.  It identifies the
-interfaces between the system and its environment, describes the user
-characteristics and lists the system constraints.  \plt{This text can likely be
-  borrowed verbatim.}
-
-\plt{The purpose of this section is to provide general information about the
-  system so the specific requirements in the next section will be easier to
-  understand. The general system description section is designed to be
-  changeable independent of changes to the functional requirements documented in
-  the specific system description. The general system description provides a
-  context for a family of related models.  The general description can stay the
-  same, while specific details are changed between family members.}
-
 \subsection{System Context}
-
-\plt{Your system context will include a figure that shows the abstract view of
-  the software.  Often in a scientific context, the program can be viewed
-  abstractly following the design pattern of Inputs $\rightarrow$ Calculations
-  $\rightarrow$ Outputs.  The system context will therefore often follow this
-  pattern.  The user provides inputs, the system does the calculations, and then
-  provides the outputs to the user.  The figure should not show all of the
-  inputs, just an abstract view of the main categories of inputs (like material
-  properties, geometry, etc.).  Likewise, the outputs should be presented from
-  an abstract point of view.  In some cases the diagram will show other external
-  entities, besides the user.  For instance, when the software product is a
-  library, the user will be another software program, not an actual end user.
-  If there are system constraints that the software must work with external
-  libraries, these libraries can also be shown on the System Context diagram.
-  They should only be named with a specific library name if this is required by
-  the system constraint.}
+\progname{} operates as a local application. The user interacts directly with the software via a webcam and a display screen.
+\begin{itemize}
+    \item \textbf{User Responsibilities:} Ensure good lighting, wear distinguishable clothing, and position themselves fully within the camera frame.
+    \item \textbf{\progname{} Responsibilities:} Detect the user, track keypoints, calculate angles, and provide feedback in real-time.
+\end{itemize}
 
 \begin{figure}[h!]
 \begin{center}
- \includegraphics[width=0.6\textwidth]{SystemContextFigure}
-\caption{System Context}
+% \includegraphics[width=0.6\textwidth]{SystemContextFigure} % Add your image here
+\caption{System Context: User -> Webcam -> FitCoachAR -> Screen}
 \label{Fig_SystemContext} 
 \end{center}
 \end{figure}
 
-\plt{For each of the entities in the system context diagram its responsibilities
-  should be listed.  Whenever possible the system should check for data quality,
-  but for some cases the user will need to assume that responsibility.  The list
-  of responsibilities should be about the inputs and outputs only, and they
-  should be abstract.  Details should not be presented here.  However, the
-  information should not be so abstract as to just say ``inputs'' and
-  ``outputs''.  A summarizing phrase can be used to characterize the inputs.
-  For instance, saying ``material properties'' provides some information, but it
-  stays away from the detail of listing every required properties.}
-
-\begin{itemize}
-\item User Responsibilities:
-\begin{itemize}
-\item 
-\end{itemize}
-\item \progname{} Responsibilities:
-\begin{itemize}
-\item Detect data type mismatch, such as a string of characters instead of a
-  floating point number
-\item 
-\end{itemize}
-\end{itemize}
-
-\plt{Identify in what context the software will typically be used.  Is it for
-exploration? education? engineering work? scientific work?. Identify whether it
-will be used for mission-critical or safety-critical applications.} \plt{This
-additional context information is needed to determine how much effort should be
-devoted to the rationale section.  If the application is safety-critical, the
-bar is higher.  This is currently less structured, but analogous to, the idea to
-the Automotive Safety Integrity Levels (ASILs) that McSCert uses in their
-automotive hazard analyses.}
-
 \subsection{User Characteristics} \label{SecUserCharacteristics}
-
-\plt{This section summarizes the knowledge/skills expected of the user.
-  Measuring usability, which is often a required non-function requirement,
-  requires knowledge of a typical user.  As mentioned above, the user is a
-  different role from the ``intended reader,'' as given in
-  Section~\ref{sec_IntendedReader}.  As in Section~\ref{sec_IntendedReader}, the
-  user characteristics should be specific an unambiguous.  For instance, ``The
-  end user of \progname{} should have an understanding of undergraduate Level 1
-  Calculus and Physics.''}
+The end user is expected to be a fitness enthusiast or a patient undergoing physical therapy. They are assumed to have basic computer literacy but no technical knowledge of computer vision algorithms.
 
 \subsection{System Constraints}
-
-\plt{System constraints differ from other type of requirements because they
-  limit the developers' options in the system design and they identify how the
-  eventual system must fit into the world. This is the only place in the SRS
-  where design decisions can be specified.  That is, the quality requirement for
-  abstraction is relaxed here.  However, system constraints should only be
-  included if they are truly required.}
+\begin{itemize}
+    \item The system must run on standard consumer hardware (e.g., MacBook Pro 2017 or later).
+    \item The system depends on the \textbf{MediaPipe} library for raw keypoint extraction.
+    \item The camera must support at least 30 FPS at 720p resolution.
+\end{itemize}
 
 \section{Specific System Description}
 
-This section first presents the problem description, which gives a high-level
-view of the problem to be solved.  This is followed by the solution characteristics
-specification, which presents the assumptions, theories, definitions and finally
-the instance models.  \plt{Add any project specific details that are relevant
-  for the section overview.}
-
 \subsection{Problem Description} \label{Sec_pd}
-
-\progname{} is intended to solve ... \plt{What problem does your program solve?
-The description here should be in the problem space, not the solution space.}
-
-\subsubsection{Terminology and  Definitions}
-
-\plt{This section is expressed in words, not with equations.  It provide the
-  meaning of the different words and phrases used in the domain of the problem.
-The terminology is used to introduce concepts from the world outside of the
-mathematical model  The terminology provides a real world connection to give the
-mathematical model meaning.}
-
-This subsection provides a list of terms that are used in the subsequent
-sections and their meaning, with the purpose of reducing ambiguity and making it
-easier to correctly understand the requirements:
-
-\begin{itemize}
-
-\item 
-
-\end{itemize}
+Improper form during exercises like Squats can lead to injury and reduced effectiveness. \progname{} aims to solve this by providing automated, real-time coaching feedback without the need for expensive motion capture suits.
 
 \subsubsection{Physical System Description} \label{sec_phySystDescrip}
-
-\plt{The purpose of this section is to clearly and unambiguously state the
-  physical system that is to be modelled. Effective problem solving requires a
-  logical and organized approach. The statements on the physical system to be
-  studied should cover enough information to solve the problem. The physical
-  description involves element identification, where elements are defined as
-  independent and separable items of the physical system. Some example elements
-  include acceleration due to gravity, the mass of an object, and the size and
-  shape of an object. Each element should be identified and labelled, with their
-  interesting properties specified clearly. The physical description can also
-  include interactions of the elements, such as the following: i) the
-  interactions between the elements and their physical environment; ii) the
-  interactions between elements; and, iii) the initial or boundary conditions.}
-
-\plt{The elements of the physical system do not have to correspond to an actual
-physical entity.  They can be conceptual.  This is particularly important when
-the documentation is for a numerical method. }
-
-The physical system of \progname{}, as shown in Figure~?,
-includes the following elements:
-
+The physical system includes:
 \begin{itemize}
-
-\item[PS1:] 
-
-\item[PS2:] ...
-
+\item[PS1:] The \textbf{User}, whose body joints (Hip, Knee, Ankle) are the targets of measurement.
+\item[PS2:] The \textbf{Video Stream}, which captures the 2D projection of the User's movement.
 \end{itemize}
 
-\plt{A figure here makes sense for most SRS documents}
-
-% \begin{figure}[h!]
-% \begin{center}
-% %\rotatebox{-90}
-% {
-%  \includegraphics[width=0.5\textwidth]{<FigureName>}
-% }
-% \caption{\label{<Label>} <Caption>}
-% \end{center}
-% \end{figure}
-
 \subsubsection{Goal Statements}
-
-\plt{The goal statements refine the ``Problem Description''
-  (Section~\ref{Sec_pd}).  A goal is a functional objective the system under
-  consideration should achieve. Goals provide criteria for sufficient
-  completeness of a requirements specification and for requirements
-  pertinence. Goals will be refined in Section “Instanced Models”
-  (Section~\ref{sec_instance}). Large and complex goals should be decomposed
-  into smaller sub-goals.  The goals are written abstractly, with a minimal
-  amount of technical language.  They should be understandable by non-domain
-  experts.}
-
-\noindent Given the \plt{inputs}, the goal statements are:
-
 \begin{itemize}
-
-\item[GS\refstepcounter{goalnum}\thegoalnum \label{G_meaningfulLabel}:] \plt{One
-    sentence description of the goal.  There may be more than one.  Each Goal
-    should have a meaningful label.}
-
+\item[GS\refstepcounter{goalnum}\thegoalnum \label{G_Landmarks}:] Analyze user video input to detect skeletal landmarks in 2D space ($\mathbb{R}^2$).
+\item[GS\refstepcounter{goalnum}\thegoalnum \label{G_Verify}:] Verify movement execution against established biomechanical thresholds (e.g., knee interior angle).
+\item[GS\refstepcounter{goalnum}\thegoalnum \label{G_Feedback}:] Provide corrective feedback to the user.
+\item[GS\refstepcounter{goalnum}\thegoalnum \label{G_Repetition}:] Quantify valid repetitions.
 \end{itemize}
 
 \subsection{Solution Characteristics Specification}
 
-\plt{This section specifies the information in the solution domain of the system
-  to be developed. This section is intended to express what is required in
-  such a way that analysts and stakeholders get a clear picture, and the
-  latter will accept it. The purpose of this section is to reduce the problem
-  into one expressed in mathematical terms. Mathematical expertise is used to
-  extract the essentials from the underlying physical description of the
-  problem, and to collect and substantiate all physical data pertinent to the
-  problem.}
-
-\plt{This section presents the solution characteristics by successively refining
-  models.  It starts with the abstract/general Theoretical Models (TMs) and
-  refines them to the concrete/specific Instance Models (IMs).  If necessary
-  there are intermediate refinements to General Definitions (GDs).  All of these
-  refinements can potentially use Assumptions (A) and Data Definitions (DD).
-  TMs are refined to create new models, that are called GMs or IMs. DDs are not
-  refined; they are just used. GDs and IMs are derived, or refined, from other
-  models. DDs are not derived; they are just given. TMs are also just given, but
-  they are refined, not used.  If a potential DD includes a derivation, then
-  that means it is refining other models, which would make it a GD or an IM.}
-
+\subsubsection{Assumptions} \label{sec_assumpt}
+\begin{itemize}
+\item[A\refstepcounter{assumpnum}\theassumpnum \label{A_2D}:] The 2D projection of the user's side profile is sufficient to approximate the true biomechanical angles of the knee for a Squat.
+\item[A\refstepcounter{assumpnum}\theassumpnum \label{A_Camera}:] The camera remains stationary during the exercise.
+\item[A\refstepcounter{assumpnum}\theassumpnum \label{A_Visibility}:] The Hip, Knee, and Ankle joints are not occluded during the movement.
+\end{itemize}
 \plt{The above makes a distinction between ``refined'' and ``used.'' A model is
   refined to another model if it is changed by the refinement. When we change a
   general 3D equation to a 2D equation, we are making a refinement, by applying
@@ -689,89 +469,33 @@ change [LC], in which the respective assumption is used.
 
 \subsubsection{Theoretical Models}\label{sec_theoretical}
 
-\plt{Theoretical models are sets of abstract mathematical equations or axioms
-  for solving the problem described in Section ``Physical System Description''
-  (Section~\ref{sec_phySystDescrip}). Examples of theoretical models are
-  physical laws, constitutive equations, relevant conversion factors, etc.}
-
-\plt{Optionally the theory section could be divided into subsections to provide
-more structure and improve understandability and reusability.  Potential
-subsections include the following: Context theories, background theories, helper
-theories, generic theories, problem specific theories, final theories and
-rationale theories.}
-
 This section focuses on the general equations and laws that \progname{} is based
-on.  \plt{Modify the examples below for your problem, and add additional models
-  as appropriate.}
+on.
 
 ~\newline
 
 \noindent
 \deftheory
-% #2 refname of theory
-{TM:COE}
-% #3 label
-{Conservation of thermal energy}
-% #4 equation
+{TM:VectorAngle}
+{Calculation of Interior Angle between Two Vectors}
 {
-  $-{\bf \nabla \cdot q} + g$ = $\rho C \frac{\partial T}{\partial t}$
+  $\theta = \arccos \left( \frac{\vec{v}_1 \cdot \vec{v}_2}{|\vec{v}_1| |\vec{v}_2|} \right)$
 }
-% #5 description
 {
-  The above equation gives the conservation of energy for transient heat transfer in a material
-  of specific heat capacity $C$ (\si{\joule\per\kilogram\per\celsius}) and density $\rho$ 
-  (\si{\kilogram\per\cubic\metre}), where $\bf q$ is the thermal flux vector (\si{\watt\per\square\metre}),
-  $g$ is the volumetric heat generation
-  (\si{\watt\per\cubic\metre}), $T$ is the temperature
-  (\si{\celsius}),  $t$ is time (\si{\second}), and $\nabla$ is
-  the gradient operator.  For this equation to apply, other forms
-  of energy, such as mechanical energy, are assumed to be negligible in the
-  system (\aref{A_OnlyThermalEnergy}).  In general, the material properties ($\rho$ and $C$) depend on temperature.
+  This model defines the interior angle $\theta$ between two vectors $\vec{v}_1$ and $\vec{v}_2$ in Euclidean space. 
+  The dot product $\cdot$ and the magnitude $|.|$ are standard vector operations.
 }
-% #6 Notes
-{
-None.
-}
-% #7 Source
-{
-  \url{http://www.efunda.com/formulae/heat_transfer/conduction/overview_cond.cfm}
-}
-% #8 Referenced by
-{
-  \dref{ROCT}
-}
-% #9 Preconditions
-{
-None
-}
-% #1 derivation - not applicable by default
-{}
-
-\plt{``Ref.\ By'' is used repeatedly with the different types of information.
-  This stands for Referenced By.  It means that the models, definitions and
-  assumptions listed reference the current model, definition or assumption.
-  This information is given for traceability.  Ref. By provides a pointer in the
-  opposite direction to what we commonly do.  You still need to have a reference
-  in the other direction pointing to the current model, definition or
-  assumption.  As an example, if TM1 is referenced by GD2, that means that GD2 will
-  explicitly include a reference to TM1.}
+{None.}
+{Standard Linear Algebra Textbooks}
+{\dref{GD_KneeAngle}}
+{Non-zero magnitude vectors.}
 
 ~\newline
 
 \subsubsection{General Definitions}\label{sec_gendef}
 
-\plt{General Definitions (GDs) are a refinement of one or more TMs, and/or of
-  other GDs.  The GDs are less abstract than the TMs.  Generally the reduction
-  in abstraction is possible through invoking (using/referencing) Assumptions.
-  For instance, the TM could be Newton's Law of Cooling stated abstracting.  The
-  GD could take the general law and apply it to get a 1D equation.}
-
 This section collects the laws and equations that will be used in building the
 instance models.
-
-\plt{Some projects may not have any content for this section, but the section
-  heading should be kept.}  \plt{Modify the examples below for your problem, and
-  add additional definitions as appropriate.}
 
 ~\newline
 
@@ -781,31 +505,22 @@ instance models.
 \begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
 \hline
 \rowcolor[gray]{0.9}
-Number& GD\refstepcounter{defnum}\thedefnum \label{NL}\\
+Number& GD\refstepcounter{defnum}\thedefnum \label{GD_KneeAngle}\\
 \hline
-Label &\bf Newton's law of cooling \\
+Label &\bf Knee Joint Angle Calculation \\
 \hline
-% Units&$MLt^{-3}T^0$\\
-% \hline
-SI Units&\si{\watt\per\square\metre}\\
+SI Units&\si{\degree}\\
 \hline
-Equation&$ q(t) = h \Delta T(t)$  \\
+Equation& $\theta_{knee} = \text{TM:VectorAngle}(\vec{v}_{femur}, \vec{v}_{tibia})$  \\
 \hline
 Description &
-Newton's law of cooling describes convective cooling from a surface.  The law is
-stated as: the rate of heat loss from a body is proportional to the difference
-in temperatures between the body and its surroundings.
-\\
-& $q(t)$ is the thermal flux (\si{\watt\per\square\metre}).\\
-& $h$ is the heat transfer coefficient, assumed independent of $T$ (\aref{A_hcoeff})
-	(\si{\watt\per\square\metre\per\celsius}).\\
-&$\Delta T(t)$= $T(t) - T_{\text{env}}(t)$ is the time-dependent thermal gradient
-between the environment and the object (\si{\celsius}).
+The knee angle is calculated using \tref{TM:VectorAngle}. 
+$\vec{v}_{femur}$ is the vector from Knee to Hip.
+$\vec{v}_{tibia}$ is the vector from Knee to Ankle.
+This assumes the 2D plane projection (\aref{A_2D}).
 \\
 \hline
-  Source & Citation here \\
-  \hline
-  Ref.\ By & \ddref{FluxCoil}, \ddref{FluxPCM}\\
+Ref.\ By & \iref{IM_SquatValid}\\
   \hline
 \end{tabular}
 \end{minipage}\\
@@ -866,6 +581,36 @@ Symbol &$q_C$\\
   \hline
   Ref.\ By & \iref{ewat}\\
   \hline
+This section collects and defines all the data that governs the values
+of the instance models.
+
+~\newline
+
+\noindent
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\hline
+\rowcolor[gray]{0.9}
+Number& DD\refstepcounter{datadefnum}\thedatadefnum \label{DD_Landmarks}\\
+\hline
+Label& \bf Skeletal Keypoints\\
+\hline
+Symbol &$P_H, P_K, P_A$\\
+\hline
+SI Units & \si{\pixel} (x, y coordinates)\\
+\hline
+Description &
+$P_H$: Coordinates of the Hip joint.
+$P_K$: Coordinates of the Knee joint.
+$P_A$: Coordinates of the Ankle joint.
+These are provided by the pose estimation library (MediaPipe).
+\\
+\hline
+Sources& MediaPipe Documentation \\
+\hline
+Ref.\ By & \dref{GD_KneeAngle}\\
+\hline
 \end{tabular}
 \end{minipage}\\
 
@@ -908,56 +653,6 @@ models. \plt{Modify the examples below for your problem, and add additional
 \end{tabular}
 \end{minipage}\\
 
-\subsubsection{Instance Models} \label{sec_instance}    
-
-\plt{The motivation for this section is to reduce the problem defined in
-  ``Physical System Description'' (Section~\ref{sec_phySystDescrip}) to one
-  expressed in mathematical terms. The IMs are built by refining the TMs and/or
-  GDs.  This section should remain abstract.  The SRS should specify the
-  requirements without considering the implementation.}
-
-This section transforms the problem defined in Section~\ref{Sec_pd} into 
-one which is expressed in mathematical terms. It uses concrete symbols defined 
-in Section~\ref{sec_datadef} to replace the abstract symbols in the models 
-identified in Sections~\ref{sec_theoretical} and~\ref{sec_gendef}.
-
-The goals \plt{reference your goals} are solved by \plt{reference your instance
-  models}.  \plt{other details, with cross-references where appropriate.}
-\plt{Modify the examples below for your problem, and add additional models as
-  appropriate.}
-
-~\newline
-
-%Instance Model 1
-
-\noindent
-\begin{minipage}{\textwidth}
-\renewcommand*{\arraystretch}{1.5}
-\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
-  \hline
-  \rowcolor[gray]{0.9}
-  Number& IM\refstepcounter{instnum}\theinstnum \label{ewat}\\
-  \hline
-  Label& \bf Energy balance on water to find $T_W$\\
-  \hline
-  Input&$m_W$, $C_W$, $h_C$, $A_C$, $h_P$, $A_P$, $t_\text{final}$, $T_C$, 
-  $T_\text{init}$, $T_P(t)$ from \iref{epcm}\\
-  & The input is constrained so that $T_\text{init} \leq T_C$ (\aref{A_charge})\\
-  \hline
-  Output&$T_W(t)$, $0\leq t \leq t_\text{final}$, such that\\
-  &$\frac{dT_W}{dt} = \frac{1}{\tau_W}[(T_C - T_W(t)) + {\eta}(T_P(t) - T_W(t))]$,\\
-  &$T_W(0) = T_P(0) = T_\text{init}$ (\aref{A_InitTemp}) and $T_P(t)$ from \iref{epcm} \\
-  \hline
-  Description&$T_W$ is the water temperature (\si{\celsius}).\\
-  &$T_P$ is the PCM temperature (\si{\celsius}).\\
-  &$T_C$ is the coil temperature (\si{\celsius}).\\
-  &$\tau_W = \frac{m_W C_W}{h_C A_C}$ is a constant (\si{\second}).\\
-  &$\eta = \frac{h_P A_P}{h_C A_C}$ is a constant (dimensionless).\\
-  & The above equation applies as long as the water is in liquid form,
-  $0<T_W<100^o\text{C}$, where $0^o\text{C}$ and $100^o\text{C}$ are the melting
-  and boiling points of water, respectively (\aref{A_OpRange}, \aref{A_Pressure}).
-  \\
-  \hline
   Sources& Citation here \\
   \hline
   Ref.\ By & \iref{epcm}\\
@@ -1050,91 +745,25 @@ A correct solution must exhibit \plt{fill in the details}.  \plt{These
 
 \section{Requirements}
 
-\plt{The requirements refine the goal statement.  They will make heavy use of
-  references to the instance models.}
-
-This section provides the functional requirements, the business tasks that the
-software is expected to complete, and the nonfunctional requirements, the
-qualities that the software is expected to exhibit.
-
 \subsection{Functional Requirements}
 
 \noindent \begin{itemize}
 
-\item[R\refstepcounter{reqnum}\thereqnum \label{R_Inputs}:] \plt{Requirements
-    for the inputs that are supplied by the user.  This information has to be
-    explicit.}
-
-\item[R\refstepcounter{reqnum}\thereqnum \label{R_OutputInputs}:] \plt{It isn't
-    always required, but often echoing the inputs as part of the output is a
-    good idea.}
-
-\item[R\refstepcounter{reqnum}\thereqnum \label{R_Calculate}:] \plt{Calculation
-    related requirements.}
-
-\item[R\refstepcounter{reqnum}\thereqnum \label{R_VerifyOutput}:]
-  \plt{Verification related requirements.}
-
-\item[R\refstepcounter{reqnum}\thereqnum \label{R_Output}:] \plt{Output related
-    requirements.}
+\item[R\refstepcounter{reqnum}\thereqnum \label{R_Input}:] The system shall accept real-time video input from a webcam.
+\item[R\refstepcounter{reqnum}\thereqnum \label{R_Process}:] The system shall track the Hip, Knee, and Ankle keypoints in each frame (\ddref{DD_Landmarks}).
+\item[R\refstepcounter{reqnum}\thereqnum \label{R_Calc}:] The system shall calculate the knee angle $\theta_{knee}$ using \dref{GD_KneeAngle}.
+\item[R\refstepcounter{reqnum}\thereqnum \label{R_Verify}:] The system shall determine the validity of the squat depth based on \iref{IM_SquatValid}.
+\item[R\refstepcounter{reqnum}\thereqnum \label{R_Output}:] The system shall display the skeletal overlay and feedback text ("Good Depth" / "Too High") on the screen.
 
 \end{itemize}
 
-\plt{Every IM should map to at least one requirement, but not every requirement
-  has to map to a corresponding IM.}
-
 \subsection{Nonfunctional Requirements}
-
-\plt{List your nonfunctional requirements.  You may consider using a fit
-  criterion to make them verifiable.}
-\plt{The goal is for the nonfunctional requirements to be unambiguous, abstract
-  and verifiable.  This isn't easy to show succinctly, so a good strategy may be
-to give a ``high level'' view of the requirement, but allow for the details to
-be covered in the Verification and Validation document.}
-\plt{An absolute requirement on a quality of the system is rarely needed.  For
-  instance, an accuracy of 0.0101 \% is likely fine, even if the requirement is
-  for 0.01 \% accuracy.  Therefore, the emphasis will often be more on
-  describing now well the quality is achieved, through experimentation, and
-  possibly theory, rather than meeting some bar that was defined a priori.}
-\plt{You do not need an entry for correctness in your NFRs.  The purpose of the
-  SRS is to record the requirements that need to be satisfied for correctness.
-  Any statement of correctness would just be redundant. Rather than discuss
-  correctness, you can characterize how far away from the correct (true)
-  solution you are allowed to be.  This is discussed under accuracy.}
 
 \noindent \begin{itemize}
 
-\item[NFR\refstepcounter{nfrnum}\thenfrnum \label{NFR_Accuracy}:]
-  \textbf{Accuracy} \plt{Characterize the accuracy by giving the context/use for
-    the software.  Maybe something like, ``The accuracy of the computed
-    solutions should meet the level needed for $<$engineering or scientific
-    application$>$.  The level of accuracy achieved by \progname{} shall be
-    described following the procedure given in Section~X of the Verification and
-    Validation Plan.''  A link to the VnV plan would be a nice extra.}
-
-\item[NFR\refstepcounter{nfrnum}\thenfrnum \label{NFR_Usability}:] \textbf{Usability}
-  \plt{Characterize the usability by giving the context/use for the software.
-    You should likely reference the user characteristics section.  The level of
-    usability achieved by the software shall be described following the
-    procedure given in Section~X of the Verification and Validation Plan.  A
-    link to the VnV plan would be a nice extra.}
-
-\item[NFR\refstepcounter{nfrnum}\thenfrnum \label{NFR_Maintainability}:]
-  \textbf{Maintainability} \plt{The effort required to make any of the likely
-    changes listed for \progname{} should be less than FRACTION of the original
-    development time.  FRACTION is then a symbolic constant that can be defined
-    at the end of the report.}
-
-\item[NFR\refstepcounter{nfrnum}\thenfrnum \label{NFR_Portability}:]
-  \textbf{Portability} \plt{This NFR is easier to write than the others.  The
-    systems that \progname{} should run on should be listed here.  When possible
-    the specific versions of the potential operating environments should be
-    given.  To make the NFR verifiable a statement could be made that the tests
-    from a given section of the VnV plan can be successfully run on all of the
-    possible operating environments.}
-
-\item Other NFRs that might be discussed include verifiability,
-  understandability and reusability.
+\item[NFR\refstepcounter{nfrnum}\thenfrnum \label{NFR_RealTime}:] \textbf{Latency:} The system shall process frames and provide feedback with a latency of less than 100ms per frame (approx 10 FPS or higher).
+\item[NFR\refstepcounter{nfrnum}\thenfrnum \label{NFR_Accuracy}:] \textbf{Accuracy:} The calculated angles shall be within $\pm 5^\circ$ of visual ground truth for non-occluded frames.
+\item[NFR\refstepcounter{nfrnum}\thenfrnum \label{NFR_Portability}:] \textbf{Portability:} The system shall operate on standard Python environments (macOS/Windows).
 
 \end{itemize}
 
@@ -1145,22 +774,9 @@ should be provided for scope decisions, modelling decisions, assumptions and
 typical values.}
 
 \section{Likely Changes}    
-
-\noindent \begin{itemize}
-
-\item[LC\refstepcounter{lcnum}\thelcnum\label{LC_meaningfulLabel}:] \plt{Give
-    the likely changes, with a reference to the related assumption (aref), as appropriate.}
-
-\end{itemize}
-
-\section{Unlikely Changes}    
-
-\noindent \begin{itemize}
-
-\item[LC\refstepcounter{lcnum}\thelcnum\label{LC_meaningfulLabel}:] \plt{Give
-    the unlikely changes.  The design can assume that the changes listed will
-    not occur.}
-
+\begin{itemize}
+\item[LC\refstepcounter{lcnum}\thelcnum:] The threshold for squat depth ($\theta_{thresh}$) may become customizable by the user instead of hardcoded.
+\item[LC\refstepcounter{lcnum}\thelcnum:] Additional exercises (e.g., Bicep Curls) may be added, requiring new IMs.
 \end{itemize}
 
 \section{Traceability Matrices and Graphs}
