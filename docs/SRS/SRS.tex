@@ -233,7 +233,7 @@ $Is\_Valid$ & - & Boolean flag for repetition validity\\
 The purpose of this document is to specify the functional and non-functional requirements for \progname{}. This document is intended to be used by the development team for implementation and verification, and by the stakeholders to ensure the system meets the biomechanical analysis needs.
 
 \subsection{Scope of Requirements} 
-The scope of \progname{} is limited to the \textbf{2D analysis} of human movement using a single camera. The system currently focuses on the \textbf{Squat} exercise. It ignores 3D depth perception (z-axis) unless inferred, and assumes a stable camera position. The system calculates geometric angles based on projected keypoints and does not measure force, torque, or muscle activity.
+The scope of \progname{} is limited to the \textbf{2D analysis} of human movement using a single camera. The system currently focuses on the \textbf{Squat} and \textbf{Bicep Curl} exercises. It ignores 3D depth perception (z-axis) unless inferred, and assumes a stable camera position. The system calculates geometric angles based on projected keypoints and does not measure force, torque, or muscle activity.
 
 \subsection{Characteristics of Intended Reader} \label{sec_IntendedReader}
 The intended reader is expected to have knowledge of:
@@ -288,8 +288,8 @@ The physical system includes:
 
 \subsubsection{Goal Statements}
 \begin{itemize}
-\item[GS\refstepcounter{goalnum}\thegoalnum \label{G_Landmarks}:] Analyze user video input to detect skeletal landmarks in 2D space ($\mathbb{R}^2$).
-\item[GS\refstepcounter{goalnum}\thegoalnum \label{G_Verify}:] Verify movement execution against established biomechanical thresholds (e.g., knee interior angle).
+\item[GS\refstepcounter{goalnum}\thegoalnum \label{G_Landmarks}:] Analyze user video input to detect skeletal landmarks (Legs and Arms) in 2D space ($\mathbb{R}^2$).
+\item[GS\refstepcounter{goalnum}\thegoalnum \label{G_Verify}:] Verify movement execution against established biomechanical thresholds (e.g., knee interior angle, elbow extension).
 \item[GS\refstepcounter{goalnum}\thegoalnum \label{G_Feedback}:] Provide corrective feedback to the user.
 \item[GS\refstepcounter{goalnum}\thegoalnum \label{G_Repetition}:] Quantify valid repetitions.
 \end{itemize}
@@ -334,6 +334,62 @@ on.
 
 ~\newline
 
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\hline
+\rowcolor[gray]{0.9}
+Number& DD\refstepcounter{datadefnum}\thedatadefnum \label{DD_Landmarks}\\
+\hline
+Label& \bf Skeletal Keypoints (Legs)\\
+\hline
+Symbol &$P_H, P_K, P_A$\\
+\hline
+SI Units & \si{\pixel} (x, y coordinates)\\
+\hline
+Description &
+$P_H$: Coordinates of the Hip joint.
+$P_K$: Coordinates of the Knee joint.
+$P_A$: Coordinates of the Ankle joint.
+These are provided by the pose estimation library (MediaPipe).
+\\
+\hline
+Sources& MediaPipe Documentation \\
+\hline
+Ref.\ By & \dref{GD_KneeAngle}\\
+\hline
+\end{tabular}
+\end{minipage}
+
+\vspace{0.5cm}
+
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\hline
+\rowcolor[gray]{0.9}
+Number& DD\refstepcounter{datadefnum}\thedatadefnum \label{DD_Landmarks_Arm}\\
+\hline
+Label& \bf Skeletal Keypoints (Arms)\\
+\hline
+Symbol &$P_S, P_E, P_W$\\
+\hline
+SI Units & \si{\pixel} (x, y coordinates)\\
+\hline
+Description &
+$P_S$: Coordinates of the Shoulder joint.
+$P_E$: Coordinates of the Elbow joint.
+$P_W$: Coordinates of the Wrist joint.
+These are provided by the pose estimation library (MediaPipe).
+\\
+\hline
+Sources& MediaPipe Documentation \\
+\hline
+Ref.\ By & \dref{GD_ElbowAngle}\\
+\hline
+\end{tabular}
+\end{minipage}
+
 \subsubsection{General Definitions}\label{sec_gendef}
 
 This section collects the laws and equations that will be used in building the
@@ -365,42 +421,34 @@ This assumes the 2D plane projection (\aref{A_2D}).
 Ref.\ By & \iref{IM_SquatValid}\\
   \hline
 \end{tabular}
-\end{minipage}\\
+\end{minipage}
 
+\vspace{0.5cm}
 
-
-\subsubsection{Data Definitions}\label{sec_datadef}
-
-This section collects and defines all the data needed to build the instance
-models. The dimension of each quantity is also given.  
-
-\noindent
 \begin{minipage}{\textwidth}
 \renewcommand*{\arraystretch}{1.5}
 \begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
 \hline
 \rowcolor[gray]{0.9}
-Number& DD\refstepcounter{datadefnum}\thedatadefnum \label{DD_Landmarks}\\
+Number& GD\refstepcounter{defnum}\thedefnum \label{GD_ElbowAngle}\\
 \hline
-Label& \bf Skeletal Keypoints\\
+Label &\bf Elbow Joint Angle Calculation \\
 \hline
-Symbol &$P_H, P_K, P_A$\\
+SI Units&\si{\degree}\\
 \hline
-SI Units & \si{\pixel} (x, y coordinates)\\
+Equation& $\theta_{elbow} = \text{TM:VectorAngle}(\vec{v}_{humerus}, \vec{v}_{radius})$  \\
 \hline
 Description &
-$P_H$: Coordinates of the Hip joint.
-$P_K$: Coordinates of the Knee joint.
-$P_A$: Coordinates of the Ankle joint.
-These are provided by the pose estimation library (MediaPipe).
+The elbow angle is calculated using \tref{TM:VectorAngle}. 
+$\vec{v}_{humerus}$ is the vector from Elbow to Shoulder.
+$\vec{v}_{radius}$ is the vector from Elbow to Wrist.
+This assumes non-occluded view (\aref{A_Visibility}).
 \\
 \hline
-Sources& MediaPipe Documentation \\
-\hline
-Ref.\ By & \dref{GD_KneeAngle}\\
-\hline
+Ref.\ By & \iref{IM_BicepCurlValid}\\
+  \hline
 \end{tabular}
-\end{minipage}\\
+\end{minipage}
 
 \subsubsection{Instance Models} \label{sec_instance}
 
@@ -432,7 +480,34 @@ This section details the instance models that use the general definitions to pro
   Ref.\ By & \rref{R_Verify}\\
   \hline
 \end{tabular}
-\end{minipage}\\
+\end{minipage}
+
+\vspace{0.5cm}
+
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+  \hline
+  \rowcolor[gray]{0.9}
+  Number& IM\refstepcounter{instnum}\theinstnum \label{IM_BicepCurlValid}\\
+  \hline
+  Label& \bf Bicep Curl Validity Criteria\\
+  \hline
+  Input& $\theta_{elbow}$ (\si{\degree})\\
+  \hline
+  Output& $IsValid$ (Boolean)\\
+  \hline
+  Description& 
+  $IsValid = (\theta_{elbow} \geq 160^\circ \text{ AND } \theta_{elbow} \leq 30^\circ)$.
+  A repetition is valid if the arm starts at full extension ($>160^\circ$) and curls to full flexion ($<30^\circ$).
+  \\
+  \hline
+  Sources& Standard Bicep Curl Biomechanics \\
+  \hline
+  Ref.\ By & \rref{R_Verify}\\
+  \hline
+\end{tabular}
+\end{minipage}
 
 \section{Requirements}
 
@@ -441,10 +516,10 @@ This section details the instance models that use the general definitions to pro
 \noindent \begin{itemize}
 
 \item[R\refstepcounter{reqnum}\thereqnum \label{R_Input}:] The system shall accept real-time video input from a webcam.
-\item[R\refstepcounter{reqnum}\thereqnum \label{R_Process}:] The system shall track the Hip, Knee, and Ankle keypoints in each frame (\ddref{DD_Landmarks}).
-\item[R\refstepcounter{reqnum}\thereqnum \label{R_Calc}:] The system shall calculate the knee angle $\theta_{knee}$ using \dref{GD_KneeAngle}.
-\item[R\refstepcounter{reqnum}\thereqnum \label{R_Verify}:] The system shall determine the validity of the squat depth based on \iref{IM_SquatValid}.
-\item[R\refstepcounter{reqnum}\thereqnum \label{R_Output}:] The system shall display the skeletal overlay and feedback text ("Good Depth" / "Too High") on the screen.
+\item[R\refstepcounter{reqnum}\thereqnum \label{R_Process}:] The system shall track skeletal keypoints for legs (\ddref{DD_Landmarks}) and arms (\ddref{DD_Landmarks_Arm}) in each frame.
+\item[R\refstepcounter{reqnum}\thereqnum \label{R_Calc}:] The system shall calculate the knee angle $\theta_{knee}$ using \dref{GD_KneeAngle} and elbow angle $\theta_{elbow}$ using \dref{GD_ElbowAngle}.
+\item[R\refstepcounter{reqnum}\thereqnum \label{R_Verify}:] The system shall determine the validity of the exercise based on \iref{IM_SquatValid} (for Squats) or \iref{IM_BicepCurlValid} (for Bicep Curls).
+\item[R\refstepcounter{reqnum}\thereqnum \label{R_Output}:] The system shall display the skeletal overlay and feedback text on the screen.
 
 \end{itemize}
 
@@ -455,6 +530,7 @@ This section details the instance models that use the general definitions to pro
 \item[NFR\refstepcounter{nfrnum}\thenfrnum \label{NFR_RealTime}:] \textbf{Latency:} The system shall process frames and provide feedback with a latency of less than 100ms per frame (approx 10 FPS or higher).
 \item[NFR\refstepcounter{nfrnum}\thenfrnum \label{NFR_Accuracy}:] \textbf{Accuracy:} The calculated angles shall be within $\pm 5^\circ$ of visual ground truth for non-occluded frames.
 \item[NFR\refstepcounter{nfrnum}\thenfrnum \label{NFR_Portability}:] \textbf{Portability:} The system shall operate on standard Python environments (macOS/Windows).
+
 
 \end{itemize}
 
@@ -488,7 +564,9 @@ the assumptions.
 	& \aref{A_2D}& \aref{A_Camera}& \aref{A_Visibility} \\
 \hline
 \dref{GD_KneeAngle}  & X & & \\ \hline
+\dref{GD_ElbowAngle} & X & & X \\ \hline
 \iref{IM_SquatValid} & X & & \\ \hline
+\iref{IM_BicepCurlValid} & X & & \\ \hline
 \end{tabular}
 \caption{Traceability Matrix Showing the Connections Between Assumptions and Other Items}
 \label{Table:A_trace}
@@ -496,12 +574,14 @@ the assumptions.
 
 \begin{table}[h!]
 \centering
-\begin{tabular}{|c|c|c|c|}
+\begin{tabular}{|c|c|c|c|c|c|}
 \hline        
-	& \tref{TM:VectorAngle}& \ddref{DD_Landmarks}& \dref{GD_KneeAngle} \\
+	& \tref{TM:VectorAngle}& \ddref{DD_Landmarks}& \ddref{DD_Landmarks_Arm} & \dref{GD_KneeAngle} & \dref{GD_ElbowAngle} \\
 \hline
-\dref{GD_KneeAngle}  & X & X & \\ \hline
-\iref{IM_SquatValid} & & & X \\ \hline
+\dref{GD_KneeAngle}  & X & X & & & \\ \hline
+\dref{GD_ElbowAngle} & X & & X & & \\ \hline
+\iref{IM_SquatValid} & & & & X & \\ \hline
+\iref{IM_BicepCurlValid} & & & & & X \\ \hline
 \end{tabular}
 \caption{Traceability Matrix Showing the Connections Between Items of Different Sections}
 \label{Table:trace}
@@ -509,14 +589,14 @@ the assumptions.
 
 \begin{table}[h!]
 \centering
-\begin{tabular}{|c|c|c|c|}
+\begin{tabular}{|c|c|c|c|c|c|c|}
 \hline
-	& \ddref{DD_Landmarks}& \dref{GD_KneeAngle}& \iref{IM_SquatValid} \\
+	& \ddref{DD_Landmarks}& \ddref{DD_Landmarks_Arm} & \dref{GD_KneeAngle}& \dref{GD_ElbowAngle} & \iref{IM_SquatValid} & \iref{IM_BicepCurlValid} \\
 \hline
-\rref{R_Process}       & X & & \\ \hline
-\rref{R_Calc}          & & X & \\ \hline
-\rref{R_Verify}        & & & X \\ \hline
-\rref{R_Output}        & & & X \\ \hline
+\rref{R_Process}       & X & X & & & & \\ \hline
+\rref{R_Calc}          & & & X & X & & \\ \hline
+\rref{R_Verify}        & & & & & X & X \\ \hline
+\rref{R_Output}        & & & & & X & X \\ \hline
 \end{tabular}
 \caption{Traceability Matrix Showing the Connections Between Requirements and Instance Models}
 \label{Table:R_trace}
