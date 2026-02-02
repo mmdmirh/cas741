@@ -271,9 +271,9 @@ The end user is expected to be a fitness enthusiast or a patient undergoing phys
 
 \subsection{System Constraints}
 \begin{itemize}
-    \item The system must run on standard consumer hardware (e.g., MacBook Pro 2017 or later).
-    \item The system depends on the \textbf{MediaPipe} library for raw keypoint extraction.
-    \item The camera must support at least 30 FPS at 720p resolution.
+    \item The system is deployed as a \textbf{web application}, accessible via modern browsers (Chrome, Firefox, Safari, Edge) on desktop and mobile devices.
+    \item The system depends on a \textbf{pose estimation backend} (e.g., MediaPipe or MoveNet) for raw keypoint extraction. The specific library may be swapped without affecting core application logic.
+    \item The user's device must have a camera capable of capturing video at a minimum of 720p resolution.
 \end{itemize}
 
 \section{Specific System Description}
