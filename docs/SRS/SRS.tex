@@ -446,7 +446,34 @@ $\vec{v}_{radius}$ is the vector from Elbow to Wrist.
 This assumes non-occluded view (\aref{A_Visibility}).
 \\
 \hline
-Ref.\ By & \iref{IM_BicepCurlValid}\\
+Ref.\ By & \iref{IM_BicepCurlValid}, \iref{IM_RepetitionCount}\\
+  \hline
+\end{tabular}
+\end{minipage}
+
+\vspace{0.5cm}
+
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\hline
+\rowcolor[gray]{0.9}
+Number& GD\refstepcounter{defnum}\thedefnum \label{GD_NormalizedProgress}\\
+\hline
+Label &\bf Normalized Repetition Progress \\
+\hline
+SI Units& Dimensionless ($0..1$)\\
+\hline
+Equation& $p = \frac{\theta - \theta_{low}}{\theta_{high} - \theta_{low}}$  \\
+\hline
+Description &
+Maps the current angle $\theta$ to a progress value $p \in [0, 1]$.
+$\theta_{low}$ and $\theta_{high}$ are calibrated ROM limits for the user.
+If $p \approx 0$, the user is at the start (eccentric start).
+If $p \approx 1$, the user is at the peak (concentric end).
+\\
+\hline
+Ref.\ By & \iref{IM_RepetitionCount}\\
   \hline
 \end{tabular}
 \end{minipage}
@@ -510,6 +537,38 @@ This section details the instance models that use the general definitions to pro
 \end{tabular}
 \end{minipage}
 
+\vspace{0.5cm}
+
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+  \hline
+  \rowcolor[gray]{0.9}
+  Number& IM\refstepcounter{instnum}\theinstnum \label{IM_RepetitionCount}\\
+  \hline
+  Label& \bf Repetition Counting State Machine\\
+  \hline
+  Input& $p$ (from \dref{GD_NormalizedProgress}), $t$ (time)\\
+  \hline
+  Output& $RepCount$ ($\mathbb{N}$)\\
+  \hline
+  Description& 
+  A full repetition is counted ($RepCount \leftarrow RepCount + 1$) when the state machine completes the cycle:
+  1. \textbf{Start}: $p \leq 0.15$ (Bottom State)
+  2. \textbf{Ascend}: $p$ increases $> 0.15$ (Up Phase)
+  3. \textbf{Peak}: $p \geq 0.85$ (Top State)
+  4. \textbf{Descend}: $p$ decreases $< 0.85$ (Down Phase)
+  5. \textbf{Complete}: $p \leq 0.15$ (Return to Bottom)
+  Constraints: The full cycle duration $\Delta t$ must satisfy $t_{min} \leq \Delta t \leq t_{max}$.
+  \\
+  \hline
+  Sources& Discrete Event Systems, Signal Processing \\
+  \hline
+  Ref.\ By & \rref{R_Output}\\
+  \hline
+\end{tabular}
+\end{minipage}
+
 \section{Requirements}
 
 \subsection{Functional Requirements}
@@ -566,8 +625,10 @@ the assumptions.
 \hline
 \dref{GD_KneeAngle}  & X & & \\ \hline
 \dref{GD_ElbowAngle} & X & & X \\ \hline
+\dref{GD_NormalizedProgress} & & & \\ \hline
 \iref{IM_SquatValid} & X & & \\ \hline
 \iref{IM_BicepCurlValid} & X & & \\ \hline
+\iref{IM_RepetitionCount} & & & \\ \hline
 \end{tabular}
 \caption{Traceability Matrix Showing the Connections Between Assumptions and Other Items}
 \label{Table:A_trace}
@@ -575,14 +636,16 @@ the assumptions.
 
 \begin{table}[h!]
 \centering
-\begin{tabular}{|c|c|c|c|c|c|}
+\begin{tabular}{|c|c|c|c|c|c|c|}
 \hline        
-	& \tref{TM:VectorAngle}& \ddref{DD_Landmarks}& \ddref{DD_Landmarks_Arm} & \dref{GD_KneeAngle} & \dref{GD_ElbowAngle} \\
+	& \tref{TM:VectorAngle}& \ddref{DD_Landmarks}& \ddref{DD_Landmarks_Arm} & \dref{GD_KneeAngle} & \dref{GD_ElbowAngle} & \dref{GD_NormalizedProgress} \\
 \hline
-\dref{GD_KneeAngle}  & X & X & & & \\ \hline
-\dref{GD_ElbowAngle} & X & & X & & \\ \hline
-\iref{IM_SquatValid} & & & & X & \\ \hline
-\iref{IM_BicepCurlValid} & & & & & X \\ \hline
+\dref{GD_KneeAngle}  & X & X & & & & \\ \hline
+\dref{GD_ElbowAngle} & X & & X & & & \\ \hline
+\dref{GD_NormalizedProgress} & & & & & & \\ \hline
+\iref{IM_SquatValid} & & & & X & & \\ \hline
+\iref{IM_BicepCurlValid} & & & & & X & \\ \hline
+\iref{IM_RepetitionCount} & & & & & & X \\ \hline
 \end{tabular}
 \caption{Traceability Matrix Showing the Connections Between Items of Different Sections}
 \label{Table:trace}
@@ -590,14 +653,14 @@ the assumptions.
 
 \begin{table}[h!]
 \centering
-\begin{tabular}{|c|c|c|c|c|c|c|}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
 \hline
-	& \ddref{DD_Landmarks}& \ddref{DD_Landmarks_Arm} & \dref{GD_KneeAngle}& \dref{GD_ElbowAngle} & \iref{IM_SquatValid} & \iref{IM_BicepCurlValid} \\
+	& \ddref{DD_Landmarks}& \ddref{DD_Landmarks_Arm} & \dref{GD_KneeAngle}& \dref{GD_ElbowAngle} & \dref{GD_NormalizedProgress} & \iref{IM_SquatValid} & \iref{IM_BicepCurlValid} \\
 \hline
-\rref{R_Process}       & X & X & & & & \\ \hline
-\rref{R_Calc}          & & & X & X & & \\ \hline
-\rref{R_Verify}        & & & & & X & X \\ \hline
-\rref{R_Output}        & & & & & X & X \\ \hline
+\rref{R_Process}       & X & X & & & & & \\ \hline
+\rref{R_Calc}          & & & X & X & X & & \\ \hline
+\rref{R_Verify}        & & & & & & X & X \\ \hline
+\rref{R_Output}        & & & & & & X & X \\ \hline
 \end{tabular}
 \caption{Traceability Matrix Showing the Connections Between Requirements and Instance Models}
 \label{Table:R_trace}
