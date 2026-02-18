@@ -66,14 +66,13 @@ This document outlines the Verification and Validation (VnV) plan for the \progn
 \section{General Information}
 
 \subsection{Summary}
-\progname{} is a real-time exercise feedback system that uses computer vision (MediaPipe) to estimate pose and a state machine to count repetitions and analyze form.
+\progname{} is a real-time exercise feedback system that uses computer vision (Pose Estimation Library) to estimate pose and a state machine to count repetitions and analyze form.
 
 \subsection{Objectives}
 The primary objectives of this VnV plan are to:
 \begin{itemize}
     \item Build confidence in the correctness of the \textbf{repetition counting logic}.
     \item Verify the \textbf{accuracy} of the biomechanical angle calculations.
-    \item Ensure the system operates in \textbf{real-time}.
 \end{itemize}
 
 \subsection{Relevant Documentation}
@@ -109,15 +108,16 @@ Implementation verification will focus on \textbf{Manual Unit Testing} of the co
 \subsection{Automated Testing and Verification Tools}
 The following tools will be used:
 \begin{itemize}
-    \item \textbf{Pytest}: For future automated unit tests.
-    \item \textbf{GitHub Actions}: For Continuous Integration (CI).
-    \item \textbf{MediaPipe}: External library (assumed verified) for pose estimation.
+    \item \textbf{Pytest}: Unit and system test execution.
+    \item \textbf{GitHub Actions}: CI — runs tests on every push.
+    \item \textbf{Robot Framework}: Automated E2E testing.
 \end{itemize}
 
 \subsection{Software Validation}
-Validation will compare the system's output against ground truth:
 \begin{itemize}
-    \item \textbf{Geometric Verification}: Comparing calculated angles against physical goniometer measurements (Ground Truth).
+    \item \textbf{Validation Approach}: Compare system output against labeled datasets.
+    \item \textbf{Method}: Use exercise datasets with annotations (correct form vs. incorrect form). Run \progname{} on the dataset and compare expected against actual.
+    \item \textbf{Oracle}: The labeled dataset serves as the oracle — it provides the "known truth" for validation.
 \end{itemize}
 
 \section{System Tests}
@@ -130,18 +130,34 @@ Validation will compare the system's output against ground truth:
 \item{T1: Perfect Squat\\}
 Type: Functional, Dynamic, Manual Simulation
 Initial State: System Initialized
-Input: Sequence of angles: $180^\circ \rightarrow 90^\circ \rightarrow 180^\circ$
-Output: `RepCount` increments by 1. State transitions: Standing $\rightarrow$ Descending $\rightarrow$ Bottom $\rightarrow$ Ascending $\rightarrow$ Standing.
+Input: Synthetic cosine wave of knee angles ($180^\circ \rightarrow 90^\circ \rightarrow 180^\circ$).
+Output: \texttt{RepCount} increments by 1. State transitions: Top $\rightarrow$ Down $\rightarrow$ Bottom $\rightarrow$ Up $\rightarrow$ Top.
 Test Case Derivation: Tests the happy path of a full valid repetition.
 How test will be performed: Manually feed angle data to the state machine function.
 
 \item{T2: Failed Rep\\}
 Type: Functional, Dynamic, Manual Simulation
 Initial State: System Initialized
-Input: Sequence of angles: $180^\circ \rightarrow 100^\circ \rightarrow 180^\circ$
-Output: `RepCount` does NOT increment. Feedback "Go Deeper" is triggered.
+Input: Angle dips to $100^\circ$ only (never reaches $90^\circ$ threshold).
+Output: \texttt{RepCount} does NOT increment. Feedback: "Go Deeper".
 Test Case Derivation: Tests the threshold logic (Boundary Value Analysis).
 How test will be performed: Manually feed angle data to the state machine function.
+
+\item{T4: State Machine Cycle (IM\_RepetitionCount)\\}
+Type: Functional, Dynamic, Manual Simulation
+Initial State: System Initialized (Bottom State, $p < 0.15$)
+Input: Sequence of $p$ values: $0.1 \rightarrow 0.5 \rightarrow 0.9 \rightarrow 0.5 \rightarrow 0.1$ with $\Delta t = 2s$.
+Output: \texttt{RepCount} increments by 1. Transitions: Start $\rightarrow$ Ascend $\rightarrow$ Peak $\rightarrow$ Descend $\rightarrow$ Complete.
+Test Case Derivation: Verification of the 5-stage state machine logic.
+How test will be performed: Feed normalized progress data to the \texttt{analyze\_form} function.
+
+\item{T5: Timing Constraint (Too Fast)\\}
+Type: Functional, Dynamic, Manual Simulation
+Initial State: System Initialized
+Input: Full cycle completed in $\Delta t = 0.2s$ (where $t_{min} = 0.5s$).
+Output: \texttt{RepCount} does NOT increment.
+Test Case Derivation: Verification of usage constraints defined in IM\_RepetitionCount.
+How test will be performed: Feed data with fast timestamps.
 \end{enumerate}
 
 \subsection{Tests for Nonfunctional Requirements}
@@ -155,7 +171,7 @@ Initial State: System Initialized
 Input: Static images with known joint angles (measured physically).
 Output: Calculated angle within $\pm 5^\circ$ of proper measurement.
 Test Case Derivation: Verification of the core measurement engine accuracy.
-How test will be performed: Compare MediaPipe output with goniometer readings.
+How test will be performed: Compare Pose Estimation output with goniometer readings.
 \end{enumerate}
 
 \section{Unit Test Description}
@@ -185,7 +201,7 @@ graduate attribute of Lifelong Learning.
 \begin{enumerate}
   \item What went well? Planning the "Manual Unit Tests" helped clarify the logic before writing code.
   \item Pain points? Determining how to verify accuracy without an expensive motion capture system. Resolved by using static goniometer measurements.
-  \item Skills needed? Knowledge of Python `pytest` for future automation and MediaPipe constraints.
+  \item Skills needed? Knowledge of Python `pytest` for future automation and Pose Estimation constraints.
 \end{enumerate}
 
 \end{document}
