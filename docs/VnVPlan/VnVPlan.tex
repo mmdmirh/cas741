@@ -71,9 +71,9 @@ This document outlines the Verification and Validation (VnV) plan for the \progn
 \subsection{Objectives}
 The primary objectives of this VnV plan are to:
 \begin{itemize}
-    \item Build confidence in the correctness of the **repetition counting logic**.
-    \item Verify the **accuracy** of the biomechanical angle calculations.
-    \item Ensure the system operates in **real-time**.
+    \item Build confidence in the correctness of the \textbf{repetition counting logic}.
+    \item Verify the \textbf{accuracy} of the biomechanical angle calculations.
+    \item Ensure the system operates in \textbf{real-time}.
 \end{itemize}
 
 \subsection{Relevant Documentation}
@@ -100,24 +100,24 @@ The Design (MG and MIS) will be verified through:
 \end{itemize}
 
 \subsection{Implementation Verification}
-Implementation verification will focus on **Manual Unit Testing** of the core logic and **Automated Testing** where feasible.
+Implementation verification will focus on \textbf{Manual Unit Testing} of the core logic and \textbf{Automated Testing} where feasible.
 \begin{itemize}
-    \item **Static Analysis**: Code reviews and linting.
-    \item **Dynamic Testing**: Manual execution of logic test cases (see Section 4).
+    \item \textbf{Static Analysis}: Code reviews and linting.
+    \item \textbf{Dynamic Testing}: Manual execution of logic test cases (see Section 4).
 \end{itemize}
 
 \subsection{Automated Testing and Verification Tools}
 The following tools will be used:
 \begin{itemize}
-    \item **Pytest**: For future automated unit tests.
-    \item **GitHub Actions**: For Continuous Integration (CI).
-    \item **MediaPipe**: External library (assumed verified) for pose estimation.
+    \item \textbf{Pytest}: For future automated unit tests.
+    \item \textbf{GitHub Actions}: For Continuous Integration (CI).
+    \item \textbf{MediaPipe}: External library (assumed verified) for pose estimation.
 \end{itemize}
 
 \subsection{Software Validation}
 Validation will compare the system's output against ground truth:
 \begin{itemize}
-    \item **Geometric Verification**: Comparing calculated angles against physical goniometer measurements (Ground Truth).
+    \item \textbf{Geometric Verification}: Comparing calculated angles against physical goniometer measurements (Ground Truth).
 \end{itemize}
 
 \section{System Tests}
@@ -161,7 +161,7 @@ How test will be performed: Compare MediaPipe output with goniometer readings.
 \section{Unit Test Description}
 
 \subsection{Unit Testing Scope}
-Unit testing will focus on the **Analysis Module** (State Machine), as it contains the critical business logic. The UI and Camera modules are tested via System Testing.
+Unit testing will focus on the \textbf{Analysis Module} (State Machine), as it contains the critical business logic. The UI and Camera modules are tested via System Testing.
 
 \subsection{Tests for Functional Requirements}
 The tests T1 and T2 defined in the System Tests section also serve as the primary Unit Tests for the Analysis Module.
