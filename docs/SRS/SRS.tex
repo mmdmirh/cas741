@@ -192,7 +192,11 @@ The choice of symbols was made to be consistent with the biomechanics and comput
 \noindent \begin{longtable*}{l l p{12cm}} \toprule
 \textbf{symbol} & \textbf{unit} & \textbf{description}\\
 \midrule 
+\mathbf{p} & - & Normalized progress (0 to 1)\\
 $\theta$ & \si{\degree} & Interior angle of a joint\\
+$\theta_{high}$ & \si{\degree} & Upper bound angle threshold\\
+$\theta_{low}$ & \si{\degree} & Lower bound angle threshold\\
+$\theta_{thresh}$ & \si{\degree} & Threshold angle for rep state transition\\
 $P$ & \si{\pixel} & A point in 2D space $(x, y)$\\
 $\vec{v}$ & - & Vector connecting two keypoints\\
 $Is\_Valid$ & - & Boolean flag for repetition validity\\
@@ -301,7 +305,7 @@ The physical system includes:
 \begin{itemize}
 \item[A\refstepcounter{assumpnum}\theassumpnum \label{A_2D}:] The 2D projection of the user's side profile is sufficient to approximate the true biomechanical angles of the knee for a Squat.
 \item[A\refstepcounter{assumpnum}\theassumpnum \label{A_Camera}:] The camera remains stationary during the exercise.
-\item[A\refstepcounter{assumpnum}\theassumpnum \label{A_Visibility}:] The relevant joints (Hip, Knee, Ankle for Squats; Shoulder, Elbow, Wrist for Bicep Curls) are not occluded during the movement.
+\item[A\refstepcounter{assumpnum}\theassumpnum \label{A_Visibility}:] The relevant joints (Hip, Knee, Ankle for Squats; Shoulder, Elbow, Wrist for Bicep Curls) have a direct line of sight to the camera and are not obstructed by clothing or equipment.
 \end{itemize}
 
 \noindent 
@@ -347,15 +351,29 @@ Label& \bf Skeletal Keypoints (Legs)\\
 Symbol &$P_H, P_K, P_A$\\
 \hline
 SI Units & \si{\pixel} (x, y coordinates)\\
+\subsubsection{Data Definitions}\label{sec_datadef}
+
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\hline
+\rowcolor[gray]{0.9}
+Number& DD\refstepcounter{datadefnum}\thedatadefnum \label{DD_Landmarks}\\
+\hline
+Label& \bf Skeletal Keypoints (Legs)\\
+\hline
+Symbol & $P_H, P_K, P_A$\\
+\hline
+SI Units & \si{\pixel} (x, y coordinates)\\
 \hline
 Description &
 $P_H$: Coordinates of the Hip joint.
 $P_K$: Coordinates of the Knee joint.
 $P_A$: Coordinates of the Ankle joint.
-These are provided by the pose estimation library (MediaPipe).
+These are provided by the pose estimation backend.
 \\
 \hline
-Sources& MediaPipe Documentation \\
+Sources& Standard Biomechanics \\
 \hline
 Ref.\ By & \dref{GD_KneeAngle}\\
 \hline
@@ -414,8 +432,8 @@ Equation& $\theta_{knee} = \text{TM:VectorAngle}(\vec{v}_{femur}, \vec{v}_{tibia
 \hline
 Description &
 The knee angle is calculated using \tref{TM:VectorAngle}. 
-$\vec{v}_{femur}$ is the vector from Knee to Hip.
-$\vec{v}_{tibia}$ is the vector from Knee to Ankle.
+$\vec{v}_{femur} = P_{hip} - P_{knee}$.
+$\vec{v}_{tibia} = P_{ankle} - P_{knee}$.
 This assumes the 2D plane projection (\aref{A_2D}).
 \\
 \hline
@@ -441,8 +459,8 @@ Equation& $\theta_{elbow} = \text{TM:VectorAngle}(\vec{v}_{humerus}, \vec{v}_{ra
 \hline
 Description &
 The elbow angle is calculated using \tref{TM:VectorAngle}. 
-$\vec{v}_{humerus}$ is the vector from Elbow to Shoulder.
-$\vec{v}_{radius}$ is the vector from Elbow to Wrist.
+$\vec{v}_{humerus} = P_{shoulder} - P_{elbow}$.
+$\vec{v}_{radius} = P_{wrist} - P_{elbow}$.
 This assumes non-occluded view (\aref{A_Visibility}).
 \\
 \hline
@@ -652,14 +670,14 @@ the assumptions.
 
 \begin{table}[h!]
 \centering
-\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
 \hline
-	& \ddref{DD_Landmarks}& \ddref{DD_Landmarks_Arm} & \dref{GD_KneeAngle}& \dref{GD_ElbowAngle} & \dref{GD_NormalizedProgress} & \iref{IM_SquatValid} & \iref{IM_BicepCurlValid} \\
+	& \aref{A_Camera} & \ddref{DD_Landmarks}& \ddref{DD_Landmarks_Arm} & \dref{GD_KneeAngle}& \dref{GD_ElbowAngle} & \dref{GD_NormalizedProgress} & \iref{IM_SquatValid} & \iref{IM_BicepCurlValid} \\
 \hline
-\rref{R_Process}       & X & X & & & & & \\ \hline
-\rref{R_Calc}          & & & X & X & X & & \\ \hline
-\rref{R_Verify}        & & & & & & X & X \\ \hline
-\rref{R_Output}        & & & & & & X & X \\ \hline
+\rref{R_Process}       & X & X & X & & & & & \\ \hline
+\rref{R_Calc}          & & & & X & X & X & & \\ \hline
+\rref{R_Verify}        & & & & & & & X & X \\ \hline
+\rref{R_Output}        & & & & & & & X & X \\ \hline
 \end{tabular}
 \caption{Traceability Matrix Showing the Connections Between Requirements and Instance Models}
 \label{Table:R_trace}
@@ -686,15 +704,5 @@ None.
 \bibliography {../../refs/References}
 
 \newpage
-
-\newpage{}
-\section*{Appendix --- Reflection}
-
-\textit{(Not required for CAS 741 submission.)}
-  
-
-\input{../Reflection.text}
-
-\input{../SRS_Reflection.text}
 
 \end{document}
