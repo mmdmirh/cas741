@@ -150,6 +150,7 @@
 \midrule
 2026-01-30 & 1.0 & First Draft for CAS 741\\
 2026-02-18 & 1.1 & Addressed Peer Review Feedback\\
+2026-03-03 & 1.2 & Addressed Dr. Smith's Feedback on SRS\\
 \bottomrule
 \end{tabularx}
 
@@ -193,7 +194,8 @@ The choice of symbols was made to be consistent with the biomechanics and comput
 \noindent \begin{longtable*}{l l p{12cm}} \toprule
 \textbf{symbol} & \textbf{unit} & \textbf{description}\\
 \midrule 
-$\mathbf{p}$ & - & Normalized progress (0 to 1)\\
+$\mathbf{P}$ & - & A generic Point \textit{(Note: removing bold p for scalar progress)}\\
+$p$ & - & Normalized progress (0 to 1)\\
 $\theta$ & \si{\degree} & Interior angle of a joint\\
 $\theta_{high}$ & \si{\degree} & Upper bound angle threshold\\
 $\theta_{low}$ & \si{\degree} & Lower bound angle threshold\\
@@ -223,6 +225,7 @@ $Is\_Valid$ & - & Boolean flag for repetition validity\\
   \progname{} & FitCoachAR\\
   TM & Theoretical Model\\
   RGB & Red Green Blue (Video format)\\
+  ROM & Range of Motion\\
   \bottomrule
 \end{tabular}\\
 
@@ -233,6 +236,7 @@ $Is\_Valid$ & - & Boolean flag for repetition validity\\
 \pagenumbering{arabic}
 
 \section{Introduction}
+The following sections provide an overview of the software requirements for \progname{}.
 
 \subsection{Purpose of Document}
 The purpose of this document is to specify the functional and non-functional requirements for \progname{}. This document is intended to be used by the development team for implementation and verification, and by the stakeholders to ensure the system meets the biomechanical analysis needs.
@@ -241,15 +245,15 @@ The purpose of this document is to specify the functional and non-functional req
 The scope of \progname{} is limited to the \textbf{2D analysis} of human movement using a single camera. The system currently focuses on the \textbf{Squat} and \textbf{Bicep Curl} exercises. It ignores 3D depth perception (z-axis) unless inferred, and assumes a stable camera position. The system calculates geometric angles based on projected keypoints and does not measure force, torque, or muscle activity.
 
 \subsection{Characteristics of Intended Reader} \label{sec_IntendedReader}
-The intended reader is expected to have knowledge of:
+The intended reader is expected to have the educational background of an upper-level undergraduate engineering or computer science student, with knowledge of:
 \begin{itemize}
     \item Basic biomechanics (joint angles, flexion, extension).
-    \item Software Engineering principles (SRS structure).
+    \item Software Engineering principles (SRS structure, typical of a senior level design course).
     \item Basic Linear Algebra (vectors, dot products).
 \end{itemize}
 
 \subsection{Organization of Document}
-This document follows the Scientific Computing SRS template. It starts with the System Description, followed by the specific physics/math models (TMs, DDs, IMs), and concludes with the Requirements.
+This document follows the Scientific Computing SRS template proposed by Smith and Lai \cite{SmithAndLai2005}. It starts with the System Description, followed by the specific physics/math models (TMs, DDs, IMs), and concludes with the Requirements.
   
 
 \section{General System Description}
@@ -272,13 +276,12 @@ This document follows the Scientific Computing SRS template. It starts with the 
 \end{figure}
 
 \subsection{User Characteristics} \label{SecUserCharacteristics}
-The end user is expected to be a fitness enthusiast or a patient undergoing physical therapy. They are assumed to have basic computer literacy but no technical knowledge of computer vision algorithms.
+The end user is expected to be a fitness enthusiast or a patient undergoing physical therapy. They are assumed to have basic computer literacy.
 
 \subsection{System Constraints}
 \begin{itemize}
-    \item The system is deployed as a \textbf{web application}, accessible via modern browsers (Chrome, Firefox, Safari, Edge) on desktop and mobile devices.
-    \item The system depends on a \textbf{pose estimation backend} (e.g., MediaPipe or MoveNet) for raw keypoint extraction. The specific library may be swapped without affecting core application logic.
-    \item The user's device must have a camera capable of capturing video at a minimum of 720p resolution.
+    \item The system is deployed as a \textbf{web application} for maximum portability. (Note: The specific architectural decision to make it a web application acts as a constraint on the implementation phase, though it could ideally be postponed to the design document).
+    \item The system depends on a \textbf{pose estimation backend} (e.g., MediaPipe or MoveNet) for raw keypoint extraction. 
 \end{itemize}
 
 \section{Specific System Description}
@@ -297,7 +300,7 @@ The physical system includes:
 \begin{itemize}
 \item[GS\refstepcounter{goalnum}\thegoalnum \label{G_Landmarks}:] Analyze user video input to detect skeletal landmarks (Legs and Arms) in 2D space ($\mathbb{R}^2$).
 \item[GS\refstepcounter{goalnum}\thegoalnum \label{G_Verify}:] Verify movement execution against established biomechanical thresholds (e.g., knee interior angle, elbow extension).
-\item[GS\refstepcounter{goalnum}\thegoalnum \label{G_Repetition}:] Quantify valid repetitions.
+\item[GS\refstepcounter{goalnum}\thegoalnum \label{G_Repetition}:] Count valid repetitions.
 \end{itemize}
 
 \subsection{Solution Characteristics Specification}
@@ -307,6 +310,8 @@ The physical system includes:
 \item[A\refstepcounter{assumpnum}\theassumpnum \label{A_2D}:] The 2D projection of the user's side profile is sufficient to approximate the true biomechanical angles of the knee for a Squat.
 \item[A\refstepcounter{assumpnum}\theassumpnum \label{A_Camera}:] The camera remains stationary during the exercise.
 \item[A\refstepcounter{assumpnum}\theassumpnum \label{A_Visibility}:] The relevant joints (Hip, Knee, Ankle for Squats; Shoulder, Elbow, Wrist for Bicep Curls) have a direct line of sight to the camera and are not obstructed by clothing or equipment.
+\item[A\refstepcounter{assumpnum}\theassumpnum \label{A_Lighting}:] The environment has adequate lighting for the camera to distinguish the user from the background.
+\item[A\refstepcounter{assumpnum}\theassumpnum \label{A_Resolution}:] The user's camera provides a minimum of 720p resolution for sufficient keypoint tracking accuracy.
 \end{itemize}
 
 \noindent 
@@ -351,10 +356,10 @@ Number& DD\refstepcounter{datadefnum}\thedatadefnum \label{DD_Landmarks}\\
 \hline
 Label& \bf Skeletal Keypoints (Legs)\\
 \hline
-Symbol & $P_H, P_K, P_A$\\
-\hline
-SI Units & \si{\pixel} (x, y coordinates)\\
-\hline
+  Symbol & $P_H, P_K, P_A$\\
+  \hline
+  SI Units & \si{\pixel} ($x, y$ coordinates)\\
+  \hline
 Description &
 $P_H$: Coordinates of the Hip joint.
 $P_K$: Coordinates of the Knee joint.
@@ -380,10 +385,10 @@ Number& DD\refstepcounter{datadefnum}\thedatadefnum \label{DD_Landmarks_Arm}\\
 \hline
 Label& \bf Skeletal Keypoints (Arms)\\
 \hline
-Symbol &$P_S, P_E, P_W$\\
-\hline
-SI Units & \si{\pixel} (x, y coordinates)\\
-\hline
+  Symbol &$P_S, P_E, P_W$\\
+  \hline
+  SI Units & \si{\pixel} ($x, y$ coordinates)\\
+  \hline
 Description &
 $P_S$: Coordinates of the Shoulder joint.
 $P_E$: Coordinates of the Elbow joint.
@@ -503,11 +508,11 @@ This section details the instance models that use the general definitions to pro
   \hline
   Input& $\theta_{knee}$ (\si{\degree})\\
   \hline
-  Output& $IsValid$ (Boolean)\\
+  Output& $IsValid \in \mathbb{B}$\\
   \hline
   Description& 
-  $IsValid = (\theta_{knee} \geq \theta_{thresh})$, where $\theta_{thresh} = 90^\circ$ (or user defined).
-  The squat is considered valid if the knee angle meets or exceeds the threshold.
+  $IsValid = (\theta_{knee} \geq \theta_{thresh\_squat})$.
+  The squat is considered valid if the knee angle meets or exceeds the threshold. $\theta_{thresh\_squat}$ is a default expected value (e.g., $90^\circ$).
   \\
   \hline
   Sources& Standard Squat Biomechanics \\
@@ -530,11 +535,11 @@ This section details the instance models that use the general definitions to pro
   \hline
   Input& $\theta_{elbow}$ (\si{\degree})\\
   \hline
-  Output& $IsValid$ (Boolean)\\
+  Output& $IsValid \in \mathbb{B}$\\
   \hline
   Description& 
-  $IsValid = (\theta_{elbow} \geq 160^\circ \text{ AND } \theta_{elbow} \leq 30^\circ)$.
-  A repetition is valid if the arm starts at full extension ($>160^\circ$) and curls to full flexion ($<30^\circ$).
+  $IsValid = (\theta_{elbow} \geq \theta_{curl\_ext} \text{ AND } \theta_{elbow} \leq \theta_{curl\_flex})$.
+  A repetition is valid if the arm starts at full extension and curls to full flexion. Default conservative values are used for extension and flexion.
   \\
   \hline
   Sources& Standard Bicep Curl Biomechanics \\
@@ -553,7 +558,7 @@ This section details the instance models that use the general definitions to pro
   \rowcolor[gray]{0.9}
   Number& IM\refstepcounter{instnum}\theinstnum \label{IM_RepetitionCount}\\
   \hline
-  Label& \bf Repetition Counting State Machine\\
+  Label& \bf Hysteresis-based Finite State Machine for Rep Counting\\
   \hline
   Input& $p$ (from \dref{GD_NormalizedProgress}), $t$ (time)\\
   \hline
@@ -582,10 +587,10 @@ This section details the instance models that use the general definitions to pro
 
 \noindent \begin{itemize}
 
-\item[R\refstepcounter{reqnum}\thereqnum \label{R_Input}:] The system shall accept real-time video input from a webcam.
+\item[R\refstepcounter{reqnum}\thereqnum \label{R_Input}:] The system shall accept real-time video input from a webcam, and the user-selected exercise type.
 \item[R\refstepcounter{reqnum}\thereqnum \label{R_Process}:] The system shall track skeletal keypoints for legs (\ddref{DD_Landmarks}) and arms (\ddref{DD_Landmarks_Arm}) in each frame.
 \item[R\refstepcounter{reqnum}\thereqnum \label{R_Calc}:] The system shall calculate the knee angle $\theta_{knee}$ using \dref{GD_KneeAngle} and elbow angle $\theta_{elbow}$ using \dref{GD_ElbowAngle}.
-\item[R\refstepcounter{reqnum}\thereqnum \label{R_Verify}:] The system shall determine the validity of the exercise based on \iref{IM_SquatValid} (for Squats) or \iref{IM_BicepCurlValid} (for Bicep Curls).
+\item[R\refstepcounter{reqnum}\thereqnum \label{R_Verify}:] The system shall determine the validity of the exercise based on the selected exercise input: \iref{IM_SquatValid} (for Squats) or \iref{IM_BicepCurlValid} (for Bicep Curls).
 \item[R\refstepcounter{reqnum}\thereqnum \label{R_Output}:] The system shall display the skeletal overlay and feedback text on the screen.
 
 \end{itemize}
@@ -594,7 +599,7 @@ This section details the instance models that use the general definitions to pro
 
 \noindent \begin{itemize}
 
-\item[NFR\refstepcounter{nfrnum}\thenfrnum \label{NFR_Accuracy}:] \textbf{Accuracy:} The calculated angles shall be within $\pm 5^\circ$ of visual ground truth for non-occluded frames.
+\item[NFR\refstepcounter{nfrnum}\thenfrnum \label{NFR_Accuracy}:] \textbf{Accuracy:} The calculated angles shall be within $\pm 5^\circ$ of visual ground truth for frames where the pose extraction confidence score exceeds the backend's reliability threshold (i.e., non-occluded). Verification procedures are detailed in the V\&V Plan.
 \item[NFR\refstepcounter{nfrnum}\thenfrnum \label{NFR_Portability}:] \textbf{Portability:} The system shall be platform-independent, accessible on any device with a modern web browser and camera.
 
 
@@ -602,11 +607,11 @@ This section details the instance models that use the general definitions to pro
 
 \subsection{Rationale}
 
-The decisions captured in this document are based on the requirements of the CAS 741 course project and the goal of creating a scientifically rigorous exercise form analysis tool using 2D computer vision.
+The decisions captured in this document are based on the goal of creating a scientifically rigorous and accessible exercise form analysis tool using 2D computer vision. The constraints and assumptions selected reflect the trade-off between widespread accessibility (using generic webcams instead of specialized hardware) and preserving geometric accuracy.
 
 \section{Likely Changes}    
 \begin{itemize}
-\item[LC\refstepcounter{lcnum}\thelcnum:] The threshold for squat depth ($\theta_{thresh}$) and bicep curl range may become customizable by the user instead of hardcoded.
+\item[LC\refstepcounter{lcnum}\thelcnum:] The thresholds for squat depth ($\theta_{thresh\_squat}$) and bicep curl range ($\theta_{curl\_ext}$, $\theta_{curl\_flex}$) are currently hardcoded, but may become dynamically customizable via user calibration routines in the future.
 \item[LC\refstepcounter{lcnum}\thelcnum:] Additional exercises (e.g., Lunges, Shoulder Press) may be added, requiring new IMs.
 \end{itemize}
 
@@ -681,11 +686,17 @@ changed.
 
 \section{Development Plan}
 
-Metric-based verification will be prioritized in the first iteration.
+Metric-based verification will be prioritized in the first iteration. A detailed schedule and testing strategy can be found in the \href{https://github.com/mmdmirh/cas741}{Verification and Validation (V\&V) Plan}.
 
 \section{Values of Auxiliary Constants}
 
-None.
+The following symbolic constants represent the default biomechanical thresholds assumed by the system for ideal form.
+
+\begin{itemize}
+    \item $\theta_{thresh\_squat} = 90^\circ$ (Minimum depth angle for a valid squat)
+    \item $\theta_{curl\_ext} = 160^\circ$ (Minimum extension angle for a valid bicep curl startup)
+    \item $\theta_{curl\_flex} = 30^\circ$ (Maximum flexion angle at the peak of a valid bicep curl)
+\end{itemize}
 
 \newpage
 
