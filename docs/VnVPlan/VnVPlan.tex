@@ -34,14 +34,6 @@ Feb 12, 2026 & 1.0 & Initial Plan based on Presentation Strategy\\
 \bottomrule
 \end{tabularx}
 
-~\newpage
-
-\tableofcontents
-
-\listoftables
-
-\listoffigures
-
 \newpage
 
 \section{Symbols, Abbreviations, and Acronyms}
@@ -66,7 +58,7 @@ This document outlines the Verification and Validation (VnV) plan for the \progn
 \section{General Information}
 
 \subsection{Summary}
-\progname{} is a real-time exercise feedback system that uses computer vision (Pose Estimation Library) to estimate pose and a state machine to count repetitions and analyze form.
+\progname{} is a real-time exercise feedback system that uses computer vision (Pose Estimation Library) to estimate pose and a state machine to count repetitions and analyze form. This verification process is critical for the success of this project.
 
 \subsection{Objectives}
 The primary objectives of this VnV plan are to:
@@ -78,6 +70,9 @@ The primary objectives of this VnV plan are to:
 \subsection{Relevant Documentation}
 \citet{SRS} provides the functional and non-functional requirements that will be verified.
 
+\subsection{Scope}
+Usability testing is currently out of scope for the Proof of Concept demonstration but will be formally evaluated in future iterations because usability is very important for a consumer-facing mobile application.
+
 \section{Plan}
 
 \subsection{Verification and Validation Team}
@@ -86,38 +81,39 @@ The verification team consists of the primary developer (\authname) and the assi
 \subsection{SRS Verification}
 The SRS has been verified through:
 \begin{itemize}
-    \item Peer review by the Domain Expert (Yibing Mei) via GitHub Issues.
+    \item Peer review by the assigned primary and secondary reviewers from CAS 741 via GitHub Issues.
     \item Review by the supervisor (Dr. Smith).
-    \item Checklist-based verification of Goal Statements and Input Constraints.
+    \item Checklist-based verification of Goal Statements and Input Constraints (\href{https://github.com/smiths/capTemplate/blob/main/docs/Checklists/SRS-Checklist.pdf}{SRS Checklist}).
 \end{itemize}
 
 \subsection{Design Verification}
 The Design (MG and MIS) will be verified through:
 \begin{itemize}
-    \item Peer review (GitHub Issues).
-    \item Comparison against the SRS to ensure all requirements are mapped to modules.
+    \item Peer review (GitHub Issues) by the assigned domain expert and secondary reviewers.
+    \item Comparison against the SRS utilizing a Traceability Matrix to ensure all requirements are mapped to corresponding modules.
 \end{itemize}
 
 \subsection{Implementation Verification}
-Implementation verification will focus on \textbf{Manual Unit Testing} of the core logic and \textbf{Automated Testing} where feasible.
+Implementation verification will focus on \textbf{Manual Unit Testing} of the core logic and \textbf{Automated Testing} where feasible. Formal reviews will be conducted by the CAS 741 peer reviewers.
 \begin{itemize}
-    \item \textbf{Static Analysis}: Code reviews and linting.
-    \item \textbf{Dynamic Testing}: Manual execution of logic test cases (see Section 4).
+    \item \textbf{Static Analysis}: Peer code reviews via GitHub Pull Requests, and automated linting utilizing \texttt{flake8} and \texttt{pylint}.
+    \item \textbf{Dynamic Testing}: The primary developer will manually run the system against defined test cases (see Section 4) prior to merging code.
 \end{itemize}
 
 \subsection{Automated Testing and Verification Tools}
 The following tools will be used:
 \begin{itemize}
-    \item \textbf{Pytest}: Unit and system test execution.
-    \item \textbf{GitHub Actions}: CI — runs tests on every push.
-    \item \textbf{Robot Framework}: Automated E2E testing.
+    \item \href{https://docs.pytest.org/}{\textbf{Pytest}}: Unit and system test execution.
+    \item \href{https://github.com/features/actions}{\textbf{GitHub Actions}}: CI — runs linting and automated tests on every push.
+    \item \href{https://robotframework.org/}{\textbf{Robot Framework}}: Automated E2E testing for the user interface.
 \end{itemize}
 
 \subsection{Software Validation}
 \begin{itemize}
-    \item \textbf{Validation Approach}: Compare system output against labeled datasets.
-    \item \textbf{Method}: Use exercise datasets with annotations (correct form vs. incorrect form). Run \progname{} on the dataset and compare expected against actual.
-    \item \textbf{Oracle}: The labeled dataset serves as the oracle — it provides the "known truth" for validation.
+    \item \textbf{Dataset}: Validation utilizes a custom recorded dataset consisting of 50 exercise videos. Each video has been manually labelled frame-by-frame indicating whether the user is exhibiting correct or incorrect physical form.
+    \item \textbf{Validation Approach}: Compare system output against the labelled datasets.
+    \item \textbf{Method}: Run \progname{} on the dataset and compare the expected (labelled) outputs against the actual system feedback.
+    \item \textbf{Oracle}: The labelled dataset serves as the oracle — it provides the "known truth" for validation.
 \end{itemize}
 
 \section{System Tests}
@@ -128,36 +124,52 @@ The following tools will be used:
 
 \begin{enumerate}
 \item{T1: Perfect Squat\\}
-Type: Functional, Dynamic, Manual Simulation
+Type: Functional, Dynamic, Automated Simulation
 Initial State: System Initialized
 Input: Synthetic cosine wave of knee angles ($180^\circ \rightarrow 90^\circ \rightarrow 180^\circ$).
-Output: \texttt{RepCount} increments by 1. State transitions: Top $\rightarrow$ Down $\rightarrow$ Bottom $\rightarrow$ Up $\rightarrow$ Top.
+Expected Output and Final State: \texttt{RepCount} increments by 1. Final state is Top. State transitions: Top $\rightarrow$ Down $\rightarrow$ Bottom $\rightarrow$ Up $\rightarrow$ Top.
 Test Case Derivation: Tests the happy path of a full valid repetition.
-How test will be performed: Manually feed angle data to the state machine function.
+How test will be performed: Automatically feed angle data to the state machine function using pytest.
 
 \item{T2: Failed Rep\\}
 Type: Functional, Dynamic, Manual Simulation
 Initial State: System Initialized
 Input: Angle dips to $100^\circ$ only (never reaches $90^\circ$ threshold).
-Output: \texttt{RepCount} does NOT increment. Feedback: "Go Deeper".
+Expected Output and Final State: \texttt{RepCount} does NOT increment. Feedback: "Go Deeper". Final state is Top.
 Test Case Derivation: Tests the threshold logic (Boundary Value Analysis).
 How test will be performed: Manually feed angle data to the state machine function.
 
 \item{T4: State Machine Cycle (IM\_RepetitionCount)\\}
 Type: Functional, Dynamic, Manual Simulation
-Initial State: System Initialized (Bottom State, $p < 0.15$)
-Input: Sequence of $p$ values: $0.1 \rightarrow 0.5 \rightarrow 0.9 \rightarrow 0.5 \rightarrow 0.1$ with $\Delta t = 2s$.
-Output: \texttt{RepCount} increments by 1. Transitions: Start $\rightarrow$ Ascend $\rightarrow$ Peak $\rightarrow$ Descend $\rightarrow$ Complete.
+Initial State: System Initialized (Bottom State, $p < 0.15$), where $p$ is the normalized scalar progress of the exercise ($0.0 \rightarrow 1.0$).
+Input: Sequence of $p$ values: $0.1 \rightarrow 0.5 \rightarrow 0.9 \rightarrow 0.5 \rightarrow 0.1$ with $\Delta t = 2.0s$.
+Expected Output and Final State: \texttt{RepCount} increments by 1. Transitions: Start $\rightarrow$ Ascend $\rightarrow$ Peak $\rightarrow$ Descend $\rightarrow$ Complete. Final State: Complete.
 Test Case Derivation: Verification of the 5-stage state machine logic.
 How test will be performed: Feed normalized progress data to the \texttt{analyze\_form} function.
 
 \item{T5: Timing Constraint (Too Fast)\\}
 Type: Functional, Dynamic, Manual Simulation
-Initial State: System Initialized
-Input: Full cycle completed in $\Delta t = 0.2s$ (where $t_{min} = 0.5s$).
-Output: \texttt{RepCount} does NOT increment.
+Initial State: System Initialized (Top State)
+Input: Sequence of progress values representing a full rep: $1.0 \rightarrow 0.0 \rightarrow 1.0$. The simulated timestamps for these frames are $t_0 = 0.0s, t_1 = 0.1s, t_2 = 0.2s$ (where $t_{min} = 0.5s$).
+Expected Output and Final State: \texttt{RepCount} does NOT increment. A warning "Too Fast" is logged. Final State: Top State.
 Test Case Derivation: Verification of usage constraints defined in IM\_RepetitionCount.
-How test will be performed: Feed data with fast timestamps.
+How test will be performed: Feed data with fast timestamps directly into the rep counter.
+
+\item{T6: Intermediate State Transition (Ascend)\\}
+Type: Functional, Dynamic, Automated Simulation
+Initial State: Start State ($p = 0.1$)
+Input: Normalized progress increases to $p = 0.6$.
+Expected Output and Final State: The state machine transitions to the Ascend state. \texttt{RepCount} does not increment.
+Test Case Derivation: Verification that the intermediate ascending threshold triggers correctly.
+How test will be performed: Automatically pass $p$ values into the state machine and assert the returned state Enum.
+
+\item{T7: State Reversal (Failed Transition)\\}
+Type: Functional, Dynamic, Automated Simulation
+Initial State: Ascend State ($p = 0.6$)
+Input: Normalized progress decreases back to $p = 0.1$ instead of continuing to Peak.
+Expected Output and Final State: The state machine transitions back to the Start state. \texttt{RepCount} does not increment.
+Test Case Derivation: Verification that the state machine handles reversals and does not erroneously count incomplete movements.
+How test will be performed: Automatically pass $p$ values into the state machine and assert the returned state Enum.
 \end{enumerate}
 
 \subsection{Tests for Nonfunctional Requirements}
@@ -165,22 +177,32 @@ How test will be performed: Feed data with fast timestamps.
 \subsubsection{Accuracy (NFR1)}
 
 \begin{enumerate}
-\item{T3: Geometric Verification\\}
-Type: Functional/Non-Functional, Dynamic, Manual
+\item{T8: Geometric Verification (Static Dataset)\\}
+Type: Functional/Non-Functional, Dynamic, Automated
 Initial State: System Initialized
-Input: Static images with known joint angles (measured physically).
-Output: Calculated angle within $\pm 5^\circ$ of proper measurement.
-Test Case Derivation: Verification of the core measurement engine accuracy.
-How test will be performed: Compare Pose Estimation output with goniometer readings.
+Input: A dataset of 20 static images with known, labeled joint angles (measured physically with a goniometer).
+Expected Output and Final State: Calculated angles for all 20 images correspond to the labeled ground truth. System logs an average error delta.
+Test Case Derivation: Verification of the core measurement engine accuracy via a posteriori measurement.
+How test will be performed: Run the extraction module chronologically across the labeled static dataset and compute the mean absolute error.
+
+\item{T9: Dynamic Occlusion Verification (Video Dataset)\\}
+Type: Non-Functional, Dynamic, Automated
+Initial State: System Initialized
+Input: A labeled video dataset containing 10 scenarios where the subject is temporarily occluded by an object.
+Expected Output and Final State: The system successfully identifies the frames as occluded (via low confidence scores) and gracefully ignores those frames for angle extraction without crashing.
+Test Case Derivation: Verification of robustness and accuracy in imperfect environments.
+How test will be performed: Automated script processes the occluded videos and asserts the error handling flow.
 \end{enumerate}
 
 \section{Unit Test Description}
 
 \subsection{Unit Testing Scope}
-Unit testing will focus on the \textbf{Analysis Module} (State Machine), as it contains the critical business logic. The UI and Camera modules are tested via System Testing.
+Unit testing will focus on the \textbf{Analysis Module} (State Machine), as it contains the critical business logic. 
+
+Because the UI, video input stream, and end-to-end user feedback loops are difficult to automate reliably without extensive mocking, we will place a strong emphasis on \textbf{Code Reviews}. All frontend and integration code must pass a rigorous peer review utilizing a standardized checklist before being merged.
 
 \subsection{Tests for Functional Requirements}
-The tests T1 and T2 defined in the System Tests section also serve as the primary Unit Tests for the Analysis Module.
+The tests T1, T6, and T7 defined in the System Tests section also serve as the primary Unit Tests for the Analysis Module.
 
 \bibliographystyle{plainnat}
 \bibliography{../../refs/References}
