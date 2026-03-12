@@ -77,7 +77,7 @@ Usability testing is currently out of scope for the Proof of Concept demonstrati
 \section{Plan}
 
 \subsection{Verification and Validation Team}
-The verification team consists of the primary developer (\authname) and the assigned peer reviewers.
+The verification team consists of the primary developer (\authname) and the assigned peer reviewers from CAS 741, including Yibing Mei.
 
 \subsection{SRS Verification and Validation}
 The SRS has been verified and validated through a systematic plan to ensure the requirements align with both software engineering standards and real-world fitness coaching needs. This plan includes:
@@ -111,7 +111,7 @@ The following tools will be used:
 
 \subsection{Software Validation}
 \begin{itemize}
-    \item \textbf{Dataset}: Validation utilizes a custom recorded dataset consisting of 50 exercise videos. Each video has been manually labelled frame-by-frame indicating whether the user is exhibiting correct or incorrect physical form.
+    \item \textbf{Dataset}: Validation utilizes a custom recorded dataset consisting of 50 exercise videos. The dataset includes a diverse distribution of correct form, incorrect depth, incorrect angles, varying user heights, and different camera angles to ensure coverage of realistic usage scenarios. Each video has been manually labelled frame-by-frame indicating whether the user is exhibiting correct or incorrect physical form.
     \item \textbf{Validation Approach}: Compare system output against the labelled datasets.
     \item \textbf{Method}: Run \progname{} on the dataset and compare the expected (labelled) outputs against the actual system feedback.
     \item \textbf{Oracle}: The labelled dataset serves as the oracle — it provides the "known truth" for validation.
@@ -125,51 +125,51 @@ The following tools will be used:
 
 \begin{enumerate}
 \item{T1: Perfect Squat\\}
-Type: Functional, Dynamic, Automated Simulation
-Initial State: System Initialized
-Input: Synthetic cosine wave of knee angles ($180^\circ \rightarrow 90^\circ \rightarrow 180^\circ$).
-Expected Output and Final State: \texttt{RepCount} increments by 1. Final state is Top. State transitions: Top $\rightarrow$ Down $\rightarrow$ Bottom $\rightarrow$ Up $\rightarrow$ Top.
-Test Case Derivation: Tests the happy path of a full valid repetition.
+Type: Functional, Dynamic, Automated Simulation\\
+Initial State: System Initialized\\
+Input: Synthetic cosine wave of knee angles ($180^\circ \rightarrow 90^\circ \rightarrow 180^\circ$).\\
+Expected Output and Final State: \texttt{RepCount} increments by 1. Final state is Top. State transitions: Top $\rightarrow$ Down $\rightarrow$ Bottom $\rightarrow$ Up $\rightarrow$ Top.\\
+Test Case Derivation: Tests the happy path of a full valid repetition.\\
 How test will be performed: Automatically feed angle data to the state machine function using pytest.
 
 \item{T2: Failed Rep\\}
-Type: Functional, Dynamic, Manual Simulation
-Initial State: System Initialized
-Input: Angle dips to $100^\circ$ only (never reaches $90^\circ$ threshold).
-Expected Output and Final State: \texttt{RepCount} does NOT increment. Feedback: "Go Deeper". Final state is Top.
-Test Case Derivation: Tests the threshold logic (Boundary Value Analysis).
+Type: Functional, Dynamic, Manual Simulation\\
+Initial State: System Initialized\\
+Input: Angle dips to $100^\circ$ only (never reaches $90^\circ$ threshold).\\
+Expected Output and Final State: \texttt{RepCount} does NOT increment. Feedback: "Go Deeper". Final state is Top.\\
+Test Case Derivation: Tests the threshold logic (Boundary Value Analysis).\\
 How test will be performed: Manually feed angle data to the state machine function.
 
 \item{T4: State Machine Cycle (IM\_RepetitionCount)\\}
-Type: Functional, Dynamic, Manual Simulation
-Initial State: System Initialized (Bottom State, $p < 0.15$), where $p$ is the normalized scalar progress of the exercise ($0.0 \rightarrow 1.0$).
-Input: Sequence of $p$ values: $0.1 \rightarrow 0.5 \rightarrow 0.9 \rightarrow 0.5 \rightarrow 0.1$ with $\Delta t = 2.0s$.
-Expected Output and Final State: \texttt{RepCount} increments by 1. Transitions: Start $\rightarrow$ Ascend $\rightarrow$ Peak $\rightarrow$ Descend $\rightarrow$ Complete. Final State: Complete.
-Test Case Derivation: Verification of the 5-stage state machine logic.
+Type: Functional, Dynamic, Manual Simulation\\
+Initial State: System Initialized (Bottom State, $p < 0.15$), where $p$ is the normalized scalar progress of the exercise ($0.0 \rightarrow 1.0$).\\
+Input: Sequence of $p$ values: $0.1 \rightarrow 0.5 \rightarrow 0.9 \rightarrow 0.5 \rightarrow 0.1$ with $\Delta t = 2.0s$.\\
+Expected Output and Final State: \texttt{RepCount} increments by 1. Transitions: Start $\rightarrow$ Ascend $\rightarrow$ Peak $\rightarrow$ Descend $\rightarrow$ Complete. Final State: Complete.\\
+Test Case Derivation: Verification of the 5-stage state machine logic.\\
 How test will be performed: Feed normalized progress data to the \texttt{analyze\_form} function.
 
 \item{T5: Timing Constraint (Too Fast)\\}
-Type: Functional, Dynamic, Manual Simulation
-Initial State: System Initialized (Top State)
-Input: Sequence of progress values representing a full rep: $1.0 \rightarrow 0.0 \rightarrow 1.0$. The simulated timestamps for these frames are $t_0 = 0.0s, t_1 = 0.1s, t_2 = 0.2s$ (where $t_{min} = 0.5s$).
-Expected Output and Final State: \texttt{RepCount} does NOT increment. A warning "Too Fast" is logged. Final State: Top State.
-Test Case Derivation: Verification of usage constraints defined in IM\_RepetitionCount.
+Type: Functional, Dynamic, Manual Simulation\\
+Initial State: System Initialized (Top State)\\
+Input: Sequence of progress values representing a full rep: $1.0 \rightarrow 0.0 \rightarrow 1.0$. The simulated timestamps for these frames are $t_0 = 0.0s, t_1 = 0.1s, t_2 = 0.2s$ (where $t_{min} = 0.5s$).\\
+Expected Output and Final State: \texttt{RepCount} does NOT increment. A warning "Too Fast" is logged. Final State: Top State.\\
+Test Case Derivation: Verification of usage constraints defined in IM\_RepetitionCount.\\
 How test will be performed: Feed data with fast timestamps directly into the rep counter.
 
 \item{T6: Intermediate State Transition (Ascend)\\}
-Type: Functional, Dynamic, Automated Simulation
-Initial State: Start State ($p = 0.1$)
-Input: Normalized progress increases to $p = 0.6$.
-Expected Output and Final State: The state machine transitions to the Ascend state. \texttt{RepCount} does not increment.
-Test Case Derivation: Verification that the intermediate ascending threshold triggers correctly.
+Type: Functional, Dynamic, Automated Simulation\\
+Initial State: Start State ($p = 0.1$)\\
+Input: Normalized progress increases to $p = 0.6$.\\
+Expected Output and Final State: The state machine transitions to the Ascend state. \texttt{RepCount} does not increment.\\
+Test Case Derivation: Verification that the intermediate ascending threshold triggers correctly.\\
 How test will be performed: Automatically pass $p$ values into the state machine and assert the returned state Enum.
 
 \item{T7: State Reversal (Failed Transition)\\}
-Type: Functional, Dynamic, Automated Simulation
-Initial State: Ascend State ($p = 0.6$)
-Input: Normalized progress decreases back to $p = 0.1$ instead of continuing to Peak.
-Expected Output and Final State: The state machine transitions back to the Start state. \texttt{RepCount} does not increment.
-Test Case Derivation: Verification that the state machine handles reversals and does not erroneously count incomplete movements.
+Type: Functional, Dynamic, Automated Simulation\\
+Initial State: Ascend State ($p = 0.6$)\\
+Input: Normalized progress decreases back to $p = 0.1$ instead of continuing to Peak.\\
+Expected Output and Final State: The state machine transitions back to the Start state. \texttt{RepCount} does not increment.\\
+Test Case Derivation: Verification that the state machine handles reversals and does not erroneously count incomplete movements.\\
 How test will be performed: Automatically pass $p$ values into the state machine and assert the returned state Enum.
 \end{enumerate}
 
@@ -179,28 +179,46 @@ How test will be performed: Automatically pass $p$ values into the state machine
 
 \begin{enumerate}
 \item{T8: Geometric Verification (Static Dataset)\\}
-Type: Functional/Non-Functional, Dynamic, Automated
-Initial State: System Initialized
-Input: A dataset of 20 static images with known, labeled joint angles (measured physically with a goniometer).
-Expected Output and Final State: Calculated angles for all 20 images correspond to the labeled ground truth. System logs an average error delta.
-Test Case Derivation: Verification of the core measurement engine accuracy via a posteriori measurement.
+Type: Functional/Non-Functional, Dynamic, Automated\\
+Initial State: System Initialized\\
+Input: A dataset of 20 static images with known, labeled joint angles (measured physically with a goniometer).\\
+Expected Output and Final State: Calculated angles for all 20 images correspond to the labeled ground truth. System logs an average error delta.\\
+Test Case Derivation: Verification of the core measurement engine accuracy via a posteriori measurement.\\
 How test will be performed: Run the extraction module chronologically across the labeled static dataset and compute the mean absolute error.
 
 \item{T9: Dynamic Occlusion Verification (Video Dataset)\\}
-Type: Non-Functional, Dynamic, Automated
-Initial State: System Initialized
-Input: A labeled video dataset containing 10 scenarios where the subject is temporarily occluded by an object.
-Expected Output and Final State: The system successfully identifies the frames as occluded (via low confidence scores) and gracefully ignores those frames for angle extraction without crashing.
-Test Case Derivation: Verification of robustness and accuracy in imperfect environments.
+Type: Non-Functional, Dynamic, Automated\\
+Initial State: System Initialized\\
+Input: A labeled video dataset containing 10 scenarios where the subject is temporarily occluded by an object.\\
+Expected Output and Final State: The system successfully identifies the frames as occluded (via low confidence scores) and gracefully ignores those frames for angle extraction without crashing.\\
+Test Case Derivation: Verification of robustness and accuracy in imperfect environments.\\
 How test will be performed: Automated script processes the occluded videos and asserts the error handling flow.
 \end{enumerate}
+
+\section{Traceability Matrices}
+Table~\ref{Table:trace} shows the traceability between the requirements from the SRS and the system tests outlined in this document.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Requirement} & \textbf{Test Cases} \\
+\hline
+\rref{R_Input} & T4, T5, T6, T7, T9 \\
+\rref{R_Process} & T8, T9 \\
+\rref{R_Calc} & T8, T9 \\
+\rref{R_Verify} & T1, T2 \\
+\rref{R_Output} & T1, T2, T4 \\
+\hline
+\end{tabular}
+\caption{Traceability Matrix: Requirements to Tests}
+\label{Table:trace}
+\end{table}
 
 \section{Unit Test Description}
 
 \subsection{Unit Testing Scope}
-Unit testing will focus on the \textbf{Analysis Module} (State Machine), as it contains the critical business logic. 
-
-Because the UI, video input stream, and end-to-end user feedback loops are difficult to automate reliably without extensive mocking, we will place a strong emphasis on \textbf{Code Reviews}. All frontend and integration code must pass a rigorous peer review utilizing a standardized checklist before being merged.
+Unit testing will focus on the \textbf{Analysis Module} (State Machine), as it contains the critical business logic. The UI, video input stream, and end-to-end user feedback loops will not be covered by automated unit tests due to the difficulty of mocking the camera context reliably, and are instead verified via dynamic simulation testing.
 
 \subsection{Tests for Functional Requirements}
 The tests T1, T6, and T7 defined in the System Tests section also serve as the primary Unit Tests for the Analysis Module.
