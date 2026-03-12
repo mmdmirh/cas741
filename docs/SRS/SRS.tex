@@ -413,7 +413,7 @@ instance models.
 \noindent
 \begin{minipage}{\textwidth}
 \renewcommand*{\arraystretch}{1.5}
-\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\begin{tabularx}{\textwidth}{| p{\colAwidth} | X |}
 \hline
 \rowcolor[gray]{0.9}
 Number& GD\refstepcounter{defnum}\thedefnum \label{GD_KneeAngle}\\
@@ -433,14 +433,14 @@ This assumes the 2D plane projection (\aref{A_2D}).
 \hline
 Ref.\ By & \iref{IM_SquatValid}\\
   \hline
-\end{tabular}
+\end{tabularx}
 \end{minipage}
 
 \vspace{0.5cm}
 
 \begin{minipage}{\textwidth}
 \renewcommand*{\arraystretch}{1.5}
-\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\begin{tabularx}{\textwidth}{| p{\colAwidth} | X |}
 \hline
 \rowcolor[gray]{0.9}
 Number& GD\refstepcounter{defnum}\thedefnum \label{GD_ElbowAngle}\\
@@ -460,7 +460,7 @@ This assumes non-occluded view (\aref{A_Visibility}).
 \hline
 Ref.\ By & \iref{IM_BicepCurlValid}, \iref{IM_RepetitionCount}\\
   \hline
-\end{tabular}
+\end{tabularx}
 \end{minipage}
 
 \vspace{0.5cm}
