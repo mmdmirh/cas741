@@ -1,0 +1,10 @@
+%% Common Parts
+
+\newcommand{\progname}{IMPS} % PUT YOUR PROGRAM NAME HERE
+\newcommand{\authname}{Mohsen Bakhtiari} % AUTHOR NAMES                  
+
+\usepackage{hyperref}
+    \hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, filecolor=blue,
+                urlcolor=blue, unicode=false}
+    \urlstyle{same}
+                                

@@ -1,0 +1,126 @@
+\documentclass{article}
+
+\usepackage{amsmath, mathtools}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{colortbl}
+\usepackage{xr}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{xfrac}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage{siunitx}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{pdflscape}
+\usepackage{afterpage}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=red,
+    filecolor=magenta,
+    urlcolor=cyan
+}
+
+\title{Problem Statement and Goals\\Integrated Multi-Physics Simulation Software for Porous Media}
+\author{Mohsen Bakhtiari\\PhD Candidate, Civil Engineering\\McMaster University}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{table}[H]
+\caption{Revision History}
+\label{TblRevisionHistory}
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+\textbf{Date} & \textbf{Developer(s)} & \textbf{Change}\\
+\midrule
+18 January 2026 & Mohsen Bakhtiari & Initial release of document\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Problem Statement}
+
+Understanding and predicting the long-term behavior of porous materials subjected to coupled hydro-thermal-chemical-mechanical processes is a critical challenge in many engineering disciplines, including civil, petroleum, geotechnical, and environmental engineering. Phenomena such as multi-phase fluid flow, heat transfer, mineral transport, precipitation and dissolution, and mechanically induced damage are strongly interdependent and evolve over time in a highly nonlinear manner.
+
+Although advanced numerical models exist in research contexts, many available tools are limited to single-physics problems, lack extensibility, or are not designed for flexible research-oriented experimentation. In particular, integrating multi-phase flow, chemical transport, thermal effects, and mechanical damage—including localized discontinuities such as cracks and material interfaces—within a unified and reusable software framework remains challenging. As a result, researchers often rely on fragmented scripts or ad-hoc implementations that are difficult to maintain, validate, and extend.
+
+This project aims to address these limitations by transforming an existing research-grade MATLAB codebase into a structured, modular, and user-oriented software platform for coupled hydro-thermal-chemical-mechanical analysis of porous media.
+
+\subsection{Problem}
+
+The primary challenge is to design and implement a software system capable of reliably simulating coupled multi-physics processes in porous materials while remaining flexible, extensible, and suitable for research and engineering applications. Key difficulties include:
+
+\begin{itemize}
+    \item Managing strong coupling between fluid flow, heat transfer, chemical transport, and mechanical response.
+    \item Supporting multi-phase flow (liquid and vapor) with both advective and diffusive transport mechanisms.
+    \item Accurately modeling time-dependent mineral precipitation and dissolution and their effects on material properties.
+    \item Capturing mechanical damage and localized discontinuities such as cracks, faults, and material interfaces.
+    \item Ensuring numerical robustness through verification, validation, and sensitivity analysis.
+\end{itemize}
+
+Existing solutions often lack a unified architecture that supports all these capabilities simultaneously. This project seeks to develop a coherent software framework that integrates these components and enables realistic simulation of porous-media behavior under diverse environmental and loading conditions.
+
+\subsection{Inputs and Outputs}
+
+\textbf{Inputs.}  
+The software will accept a range of user-defined inputs, including:
+\begin{itemize}
+    \item Geometric descriptions and finite element meshes.
+    \item Material properties such as porosity, permeability, thermal conductivity, and mechanical parameters.
+    \item Initial and boundary conditions for fluid pressures, saturations, temperature, and chemical concentrations.
+    \item Transport and reaction parameters governing mineral precipitation and dissolution.
+    \item Mechanical loading conditions and constitutive model parameters.
+    \item Time-stepping and numerical control settings.
+\end{itemize}
+
+\textbf{Outputs.}  
+The software will produce outputs including:
+\begin{itemize}
+    \item Spatial and temporal distributions of fluid pressures and saturations.
+    \item Temperature and chemical concentration fields.
+    \item Evolution of mineral content due to precipitation and dissolution.
+    \item Stress, strain, and damage fields, including crack initiation and propagation.
+    \item Diagnostic data for convergence, validation, and sensitivity analyses.
+    \item Visualization-ready results for post-processing and interpretation.
+\end{itemize}
+
+\subsection{Stakeholders}
+
+Potential stakeholders include:
+\begin{itemize}
+    \item Academic researchers studying porous media and multi-physics phenomena.
+    \item Graduate students conducting advanced numerical and computational research.
+    \item Engineering practitioners in civil, geotechnical, petroleum, mining, and environmental engineering.
+    \item Conservation engineers assessing durability and rehabilitation of masonry and historical structures.
+    \item Computational engineers and software developers extending scientific simulation tools.
+\end{itemize}
+
+\subsection{Environment}
+
+The software will be designed to run on common research computing platforms, including Windows, macOS, and Linux-based systems. The implementation will emphasize modularity and portability to support future extensions, including graphical interfaces and high-performance computing workflows.
+
+\section{Goals}
+\begin{enumerate}
+    \item Produce a maintainable software system for coupled hydro-thermal-chemical-mechanical simulations of porous media.
+    \item Accurately simulate coupled multi-phase flow, heat transfer, chemical transport, and mechanical damage processes.
+    \item Support systematic verification and validation of simulation results.
+    \item Provide a software system that is usable by researchers and graduate students.
+    \item Enable future extension of the software to additional physical models and application domains.
+\end{enumerate}
+
+
+\section{Stretch Goals}
+\begin{enumerate}
+    \item Implement advanced visualization and post-processing capabilities.
+    \item Extend the framework to support additional constitutive and coupling models.
+    \item Explore integration with graphical user interfaces and high-performance computing environments.
+    \item Apply the software to benchmark problems and real-world engineering case studies.
+\end{enumerate}
+
+\end{document}

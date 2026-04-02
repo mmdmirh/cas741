@@ -1,0 +1,1367 @@
+% IMPS SRS - Overleaf single-file version (compiles without external inputs/files)
+\documentclass[12pt]{article}
+
+% -------------------- Packages --------------------
+\usepackage{amsmath, mathtools}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{colortbl}
+\usepackage{hyperref}
+\usepackage{bookmark}
+\usepackage{longtable}
+\usepackage{xfrac}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage{siunitx}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{pdflscape}
+\usepackage{afterpage}
+\usepackage[numbers,round]{natbib}
+\usepackage{fullpage}
+
+% -------------------- Hyperref setup --------------------
+\hypersetup{
+  colorlinks=true,
+  linkcolor=red,
+  citecolor=green,
+  filecolor=magenta,
+  urlcolor=cyan
+}
+
+% -------------------- Template helper commands (dummy replacements) --------------------
+% These were originally coming from ../Comments.text and ../Common.text
+\newcommand{\progname}{IMPS}
+\newcommand{\plt}[1]{}   % hides template comments
+\newcommand{\wss}[1]{}   % hides template comments
+
+% -------------------- Table width helpers --------------------
+\newcommand{\colZwidth}{1.0\textwidth}
+\newcommand{\colAwidth}{0.13\textwidth}
+\newcommand{\colBwidth}{0.82\textwidth}
+\newcommand{\colCwidth}{0.1\textwidth}
+\newcommand{\colDwidth}{0.05\textwidth}
+\newcommand{\colEwidth}{0.8\textwidth}
+\newcommand{\colFwidth}{0.17\textwidth}
+\newcommand{\colGwidth}{0.5\textwidth}
+\newcommand{\colHwidth}{0.28\textwidth}
+
+% -------------------- Counters + reference helpers --------------------
+\newcounter{defnum} %Definition Number
+\newcommand{\dthedefnum}{GD\thedefnum}
+\newcommand{\dref}[1]{GD\ref{#1}}
+
+\newcounter{datadefnum} %Datadefinition Number
+\newcommand{\ddthedatadefnum}{DD\thedatadefnum}
+\newcommand{\ddref}[1]{DD\ref{#1}}
+
+\newcounter{theorynum} %Theory Number
+\newcommand{\tthetheorynum}{TM\thetheorynum}
+\newcommand{\tref}[1]{TM\ref{#1}}
+
+\newcounter{tablenum} %Table Number
+\newcommand{\tbthetablenum}{TB\thetablenum}
+\newcommand{\tbref}[1]{TB\ref{#1}}
+
+\newcounter{assumpnum} %Assumption Number
+\newcommand{\atheassumpnum}{A\theassumpnum}
+\newcommand{\aref}[1]{A\ref{#1}}
+
+\newcounter{goalnum} %Goal Number
+\newcommand{\gthegoalnum}{GS\thegoalnum}
+\newcommand{\gsref}[1]{GS\ref{#1}}
+
+\newcounter{instnum} %Instance Number
+\newcommand{\itheinstnum}{IM\theinstnum}
+\newcommand{\iref}[1]{IM\ref{#1}}
+
+\newcounter{reqnum} %Requirement Number
+\newcommand{\rthereqnum}{R\thereqnum}
+\newcommand{\rref}[1]{R\ref{#1}}
+
+\newcounter{nfrnum} %NFR Number
+\newcommand{\rthenfrnum}{NFR\thenfrnum}
+\newcommand{\nfrref}[1]{NFR\ref{#1}}
+
+\newcounter{lcnum} %Likely change number
+\newcommand{\lthelcnum}{LC\thelcnum}
+\newcommand{\lcref}[1]{LC\ref{#1}}
+
+% -------------------- Theoretical model macro --------------------
+\newcommand{\deftheory}[9][Not Applicable]
+{
+\newpage
+\noindent \rule{\textwidth}{0.5mm}
+
+\paragraph{RefName: } \textbf{#2} \phantomsection
+\label{#2}
+
+\paragraph{Label:} #3
+
+\noindent \rule{\textwidth}{0.5mm}
+
+\paragraph{Equation:}
+#4
+
+\paragraph{Description:}
+#5
+
+\paragraph{Notes:}
+#6
+
+\paragraph{Source:}
+#7
+
+\paragraph{Ref.\ By:}
+#8
+
+\paragraph{Preconditions for \hyperref[#2]{#2}:}
+\label{#2_precond}
+#9
+
+\paragraph{Derivation for \hyperref[#2]{#2}:}
+\label{#2_deriv}
+#1
+
+\noindent \rule{\textwidth}{0.5mm}
+}
+
+% -------------------- Document --------------------
+\begin{document}
+
+\title{Software Requirements Specification for \progname: Integrated Multi-Physics Simulation Software for Porous Media}
+\author{Mohsen Bakhtiari}
+\date{\today}
+\maketitle
+
+\newpage
+\pagenumbering{roman}
+\tableofcontents
+\newpage
+
+\section*{Revision History}
+
+\begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
+\toprule {\bf Date} & {\bf Version} & {\bf Notes}\\
+\midrule
+2026-01-30 & 1.0 & Initial SRS draft\\
+2026-02-19 & 1.1 & Peer review revisions: quantified NFR\_Accuracy, populated traceability matrices, tabulated auxiliary constants, replaced placeholder bibliography with real references, added reflection\\
+\bottomrule
+\end{tabularx}
+
+\newpage
+\section{Reference Material}
+
+\subsection{Table of Units}
+
+Throughout this document SI (Syst\`{e}me International d'Unit\'{e}s) is employed
+as the unit system. For each unit, the symbol is given followed by a description
+and the SI name.
+
+\renewcommand{\arraystretch}{1.2}
+\noindent \begin{tabular}{l l l}
+  \toprule
+  \textbf{symbol} & \textbf{unit} & \textbf{SI}\\
+  \midrule
+  \si{\metre} & length & metre\\
+  \si{\kilogram} & mass & kilogram\\
+  \si{\second} & time & second\\
+  \si{\celsius} & temperature & degree Celsius\\
+  \si{\joule} & energy & joule\\
+  \si{\watt} & power & watt (W = \si{\joule\per\second})\\
+  \bottomrule
+\end{tabular}
+
+% =========================
+% TableOfSymbols.tex
+% Drop-in replacement for your "Table of Symbols" section
+% Uses longtable (already in your preamble)
+% =========================
+
+\subsection{Table of Symbols}
+
+\renewcommand{\arraystretch}{1.25}
+\noindent
+\begin{longtable}{p{2.5cm} p{3.0cm} p{9.0cm}}
+\toprule
+\textbf{symbol} & \textbf{unit} & \textbf{description}\\
+\midrule
+\endfirsthead
+
+\toprule
+\textbf{symbol} & \textbf{unit} & \textbf{description}\\
+\midrule
+\endhead
+
+\midrule
+\multicolumn{3}{r}{\emph{continued on next page}}\\
+\endfoot
+
+\bottomrule
+\endlastfoot
+
+% -------------------------
+% From your provided list
+% -------------------------
+$\phi$ & -- & Porosity (pore volume / total volume).\\
+$\rho^{w}$ & $\mathrm{kg/m^3}$ & Density of water.\\
+$S^{w}$ & -- & Degree of water saturation.\\
+$S^{a}$ & -- & Degree of air (gas) saturation.\\
+$\rho^{v}$ & $\mathrm{kg/m^3}$ & Mass concentration (density) of water vapor in gaseous phase.\\
+$S^{p}$ & -- & Degree of salt crystallization (solid salt fraction in pores).\\
+$\rho^{a}$ & $\mathrm{kg/m^3}$ & Density of air.\\
+$\beta_{s}$ & $\mathrm{1/K}$ & Cubic thermal expansion coefficient of the solid skeleton.\\
+$\lambda^{w}$ & $\mathrm{m^2/(Pa\cdot s)}$ & Water mobility.\\
+$\lambda^{a}$ & $\mathrm{m^2/(Pa\cdot s)}$ & Air mobility.\\
+$\mu^{w}$ & $\mathrm{Pa\cdot s}$ & Dynamic viscosity of water.\\
+$\mu^{a}$ & $\mathrm{Pa\cdot s}$ & Dynamic viscosity of air.\\
+$p^{c}$ & $\mathrm{Pa}$ & Capillary pressure.\\
+$p^{a}$ & $\mathrm{Pa}$ & Air (gas) pressure.\\
+$p^{w}$ & $\mathrm{Pa}$ & Water (liquid) pressure.\\
+$T$ & $\mathrm{^\circ C}$ & Temperature.\\
+$\rho^{s}$ & $\mathrm{kg/m^3}$ & Density of mirabilite (solid salt phase).\\
+$D$ & $\mathrm{m^2/s}$ & Diffusion (effective) coefficient.\\
+
+$M_{H_2O}$ & $\mathrm{g/mol}$ & Molar mass of pure water.\\
+$M_{Na_2SO_4\cdot 10H_2O}$ & $\mathrm{g/mol}$ & Molar mass of mirabilite.\\
+$M_{Na_2SO_4}$ & $\mathrm{g/mol}$ & Molar mass of thenardite.\\
+$K$ & -- & Rate constant in crystallization/precipitation kinetic law.\\
+$A'$ & -- & Crystallization threshold (dimensionless).\\
+$p$ & -- & Process order (kinetic law exponent).\\
+$\omega$ & $\mathrm{kg/kg}$ & Salt mass concentration in solution.\\
+$\omega_{sat}$ & $\mathrm{kg/kg}$ & Salt mass concentration at saturation (equilibrium).\\
+$\Delta H_{evp}$ & $\mathrm{J/kg}$ & Enthalpy of vaporization per unit mass.\\
+$\Delta H_{prec}$ & $\mathrm{J/kg}$ & Enthalpy of crystallization/precipitation per unit mass.\\
+$K$ & $\mathrm{m^2}$ & Intrinsic permeability scalar.\\
+$C_p^{s}$ & $\mathrm{J/(kg\cdot K)}$ & Specific heat capacity of brick/solid skeleton.\\
+$C_p^{w}$ & $\mathrm{J/(kg\cdot K)}$ & Specific heat capacity of liquid water.\\
+$C_p^{a}$ & $\mathrm{J/(kg\cdot K)}$ & Specific heat capacity of water vapor/air phase (as used in the model).\\
+$\rho^{p}$ & $\mathrm{kg/m^3}$ & Density of mirabilite (precipitated solid salt, model notation).\\
+$C_p^{p}$ & $\mathrm{J/(kg\cdot K)}$ & Specific heat capacity of mirabilite (precipitated salt).\\
+$\chi_{ef}$ & $\mathrm{W/(m\cdot K)}$ & Effective thermal conductivity.\\
+$S$ & -- & Supersaturation ratio.\\
+
+% -------------------------
+% Mechanical / poro-mechanics additions
+% -------------------------
+$u_i$ & $\mathrm{m}$ & Displacement components of the solid skeleton.\\
+$\varepsilon_{ij}$ & -- & Small-strain tensor, $\varepsilon_{ij}=\tfrac{1}{2}(u_{i,j}+u_{j,i})$.\\
+$\sigma_{ij}$ & $\mathrm{Pa}$ & Total Cauchy stress tensor.\\
+$\sigma'_{ij}$ & $\mathrm{Pa}$ & Effective (skeleton) stress tensor.\\
+$\beta$ & -- & Biot coefficient (coupling between pore pressure and total stress).\\
+$\delta_{ij}$ & -- & Kronecker delta.\\
+$E$ & $\mathrm{Pa}$ & Young’s modulus of the porous skeleton.\\
+$\nu$ & -- & Poisson’s ratio of the porous skeleton.\\
+$G$ & $\mathrm{Pa}$ & Shear modulus, $G=\dfrac{E}{2(1+\nu)}$.\\
+$\lambda$ & $\mathrm{Pa}$ & Lam\'e’s first parameter, $\lambda=\dfrac{E\nu}{(1+\nu)(1-2\nu)}$.\\
+$\rho$ & $\mathrm{kg/m^3}$ & Bulk (homogenized) density used in momentum balance.\\
+$g_i$ & $\mathrm{m/s^2}$ & Gravity vector components.\\
+
+\end{longtable}
+
+% Notes:
+% -- Use “--” for dimensionless symbols (as in your SI table).
+% -- If you want to separate by physics (hydraulic/thermal/chemical/mechanical), tell me and I’ll format it in grouped subheadings.
+
+
+\subsection{Abbreviations and Acronyms}
+
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{l l}
+  \toprule
+  \textbf{symbol} & \textbf{description}\\
+  \midrule
+  A & Assumption\\
+  DD & Data Definition\\
+  GD & General Definition\\
+  GS & Goal Statement\\
+  IM & Instance Model\\
+  LC & Likely Change\\
+  PS & Physical System Description\\
+  R & Requirement\\
+  SRS & Software Requirements Specification\\
+  \progname & Integrated Multi-Physics Simulation Software\\
+  TM & Theoretical Model\\
+  \bottomrule
+\end{tabular}
+
+\newpage
+\pagenumbering{arabic}
+
+\section{Introduction}
+
+\subsection{Purpose of Document}
+
+The purpose of this document is to specify the requirements for \progname. The
+goal of this software is to transform an existing research-grade MATLAB codebase
+into a structured, modular, and user-oriented software platform for coupled
+hydro--thermal--chemical--mechanical analysis in porous materials.
+
+\subsection{Scope of Requirements}
+
+The scope of the requirements includes simulation of coupled
+hydro--thermal--chemical--mechanical processes in porous materials:
+\begin{itemize}
+  \item Multi-phase fluid flow (liquid and vapor) with advective and diffusive transport.
+  \item Heat transfer coupled with fluid flow.
+  \item Chemical transport, including time-dependent mineral precipitation and dissolution.
+  \item Mechanical deformation/damage and localized discontinuities (cracks, faults).
+\end{itemize}
+
+\subsection{Characteristics of Intended Reader} \label{sec_IntendedReader}
+
+The intended readers include:
+\begin{itemize}
+  \item Academic researchers studying porous media and multi-physics phenomena.
+  \item Graduate students conducting advanced numerical/computational research.
+  \item Engineering practitioners (civil, geotechnical, petroleum, mining, environmental).
+  \item Computational engineers/software developers extending scientific simulation tools.
+\end{itemize}
+
+\section{General System Description}
+
+\subsection{System Context}
+
+The user provides geometry, finite element mesh, material properties, and
+boundary conditions. \progname performs the coupled multi-physics simulation and
+outputs time-dependent fields for pressure, temperature, chemical concentration,
+and mechanical response.
+
+\begin{itemize}
+  \item User Responsibilities:
+  \begin{itemize}
+    \item Provide valid finite element mesh and geometric data.
+    \item Specify consistent material properties and constitutive parameters.
+    \item Define appropriate initial and boundary conditions for all fields.
+    \item Verify the physical plausibility of results.
+  \end{itemize}
+  \item \progname Responsibilities:
+  \begin{itemize}
+    \item Simulate coupled hydro--thermal--chemical--mechanical processes.
+    \item Perform basic input validity checks.
+    \item Compute pressures, temperatures, concentrations, and displacements.
+    \item Export results in visualization-ready formats (e.g., VTK) and CSV.
+  \end{itemize}
+\end{itemize}
+
+\subsection{User Characteristics} \label{SecUserCharacteristics}
+
+The end user should understand undergraduate calculus and physics, and have
+graduate-level familiarity with porous media mechanics and finite element
+methods.
+
+\section{Specific System Description}
+
+\subsection{Problem Description} \label{Sec_pd}
+
+\progname is intended to simulate strongly coupled hydro--thermal--chemical--mechanical
+processes in porous materials. Existing tools are often limited to single-physics
+or lack extensibility; \progname aims to provide a unified, modular, and user-oriented framework.
+
+\subsubsection{Terminology and Definitions}
+
+\begin{itemize}
+  \item \textbf{Porous medium:} Solid skeleton containing interconnected void space.
+  \item \textbf{Saturation:} Fraction of pore volume occupied by a fluid phase.
+  \item \textbf{Precipitation/Dissolution:} Phase change between dissolved ions and solid salt.
+  \item \textbf{Coupling:} Mutual dependence between governing equations (e.g., temperature affects transport).
+\end{itemize}
+
+\subsubsection{Goal Statements}
+
+\noindent Given geometric data, material properties, and initial/boundary conditions:
+
+\begin{itemize}
+\item[GS\refstepcounter{goalnum}\thegoalnum \label{G_Maintainable}:]
+Produce a maintainable software system for coupled multi-physics simulations.
+
+\item[GS\refstepcounter{goalnum}\thegoalnum \label{G_Simulate}:]
+Simulate coupled multi-phase flow, heat transfer, chemical transport, and mechanical response.
+
+\item[GS\refstepcounter{goalnum}\thegoalnum \label{G_Verification}:]
+Support systematic verification and validation of simulation results.
+
+\item[GS\refstepcounter{goalnum}\thegoalnum \label{G_Usability}:]
+Provide a usable tool for researchers and graduate students.
+
+\item[GS\refstepcounter{goalnum}\thegoalnum \label{G_Extensible}:]
+Enable extension to additional physical models and applications.
+\end{itemize}
+
+\subsection{Solution Characteristics Specification}
+
+\subsubsection{Assumptions} \label{sec_assumpt}
+
+\begin{itemize}
+
+\item[A\refstepcounter{assumpnum}\theassumpnum \label{A_Continuum}:]
+The porous medium is treated as a continuum with homogenized properties. A representative elementary volume (REV) exists such that averaged field variables are meaningful.
+
+\item[A\refstepcounter{assumpnum}\theassumpnum \label{A_LTE}:]
+Local thermodynamic equilibrium (LTE) is assumed. All phases within the REV share a single temperature field.
+
+\item[A\refstepcounter{assumpnum}\theassumpnum \label{A_SmallStrain}:]
+Mechanical deformations are small. Linearized kinematics are valid and geometric nonlinearities are neglected.
+
+\item[A\refstepcounter{assumpnum}\theassumpnum \label{A_DarcyValidity}:]
+Fluid flow (liquid and gas) occurs under laminar conditions and obeys Darcy’s law. Both saturated and unsaturated flow regimes are within the validity of the extended Darcy formulation.
+
+\end{itemize}
+
+
+% =========================================================
+% Theoretical Models WITH DERIVATIONS (FULL SECTION)
+% =========================================================
+\subsubsection{Theoretical Models}\label{sec_theoretical}
+
+This section derives the governing conservation laws for coupled
+hygro--thermal--chemical--mechanical behavior in porous media. The coupled system includes:
+(i) moisture mass conservation (liquid water + water vapor), (ii) dry air mass conservation,
+(iii) dissolved salt transport with reaction (precipitation/dissolution),
+(iv) energy conservation with advection, conduction, and latent heats, and
+(v) mechanical equilibrium with pore-pressure coupling.
+
+% ----------------------------------------------------------------
+% TM1: Moisture (liquid water + water vapor) mass balance
+% ----------------------------------------------------------------
+\noindent
+\deftheory[
+\textbf{Derivation (from scratch):}
+
+\textbf{Step 1: Start from phase-wise mass conservation.}
+For a generic fluid constituent $\beta$ stored in phase $\alpha$ inside a porous medium,
+the local balance is:
+\[
+\frac{\partial}{\partial t}\big(\phi\,\rho^\alpha\,\xi^{\beta|\alpha}\big)
++\big(\rho^\alpha\,\xi^{\beta|\alpha}\,v_i^\alpha\big)_{,i}
+= s^{\beta|\alpha},
+\]
+where $\phi$ is porosity, $\rho^\alpha$ is phase density, $\xi^{\beta|\alpha}$ is the storage fraction of constituent $\beta$ in phase $\alpha$ (here represented by saturation), $v_i^\alpha$ is Darcy (discharge) velocity, and $s^{\beta|\alpha}$ is a source/sink.
+
+\textbf{Step 2: Identify “moisture” as liquid water + water vapor.}
+Moisture stored per bulk volume is:
+\[
+m_{\text{moist}} = \phi\big(\rho^w S^w + \rho^v S^a\big),
+\]
+where liquid is phase $w$ and gas/air is phase $a$; vapor density in the gas phase is $\rho^v$.
+
+\textbf{Step 3: Liquid water mass balance.}
+\[
+\frac{\partial(\phi\rho^w S^w)}{\partial t} + (\rho^w \phi S^w v_i^w)_{,i} = s^w.
+\]
+
+\textbf{Step 4: Vapor mass balance in gas phase.}
+\[
+\frac{\partial(\phi\rho^v S^a)}{\partial t} + (\rho^v \phi S^a v_i^a)_{,i} = s^v.
+\]
+
+\textbf{Step 5: Add the two balances.}
+\[
+\frac{\partial\left(\phi(\rho^wS^w+\rho^vS^a)\right)}{\partial t}
++(\rho^w\phi S^w v_i^w)_{,i}
++(\rho^v\phi S^a v_i^a)_{,i}
+= s^w+s^v.
+\]
+
+\textbf{Step 6: Optional chemistry-related moisture sink/source.}
+If hydration/dehydration reactions consume/release moisture:
+\[
+s^w+s^v = -\frac{dm_{\text{salt,hydr}}}{dt}.
+\]
+If neglected, set RHS to $0$.
+]
+{TM:MoistureMassBalance}
+{Moisture Mass Conservation (Liquid + Vapor)}
+{
+\[
+\left(\frac{\partial\left(\phi\left(\rho^{w}S^{w}+\rho^{v}S^{a}\right)\right)}{\partial t}\right)
++\left(\rho^{w}\phi S^{w}v^{w}_{i}\right)_{,i}
++\left(\rho^{v}\phi S^{a}v^{a}_{i}\right)_{,i}
+= -\frac{d m_{\mathrm{salt,hydr}}}{dt}
+\]
+}
+{
+Conservation of total moisture in a porous medium, written as the sum of liquid-water storage/flux and water-vapor storage/flux. The right-hand-side term is used only if hydration/dehydration reactions are included.
+}
+{
+$\phi$ porosity; $S^{w}$ liquid saturation; $S^{a}$ gas saturation ($S^{a}=1-S^{w}$ if two-phase only);
+$\rho^{w}$ liquid density; $\rho^{v}$ vapor density in the gas phase; $v^{w}_{i},v^{a}_{i}$ Darcy velocities;
+$(\cdot)_{,i}$ divergence in index notation.
+}
+{None}
+{Porous media mass conservation; liquid+vapor combined}
+{IM:CoupledModel}
+{
+\begin{itemize}
+\item Two-phase pore occupancy: liquid + gas with saturations $S^w, S^a$.
+\item Darcy-scale (REV) averaging is valid.
+\item Storage terms use $\phi S^\alpha$ as pore-volume fractions.
+\item Source term $dm_{\mathrm{salt,hydr}}/dt$ is set by your chemistry model (or set to 0 if neglected).
+\end{itemize}
+}
+{}
+
+% ----------------------------------------------------------------
+% TM2: Dry air mass balance
+% ----------------------------------------------------------------
+\noindent
+\deftheory[
+\textbf{Derivation (from scratch):}
+
+\textbf{Step 1: Start from air-phase mass conservation.}
+Air mass stored in pores:
+\[
+m_a = \phi\,\rho^a\,S^a.
+\]
+The balance is:
+\[
+\frac{\partial(\phi\rho^a S^a)}{\partial t} + (\rho^a v_i^a)_{,i} = s^a.
+\]
+
+\textbf{Step 2: Include thermal expansion of the solid skeleton via pore-volume change.}
+At small strains, a common approximation is:
+\[
+\frac{d\phi}{dt} \approx -\beta_s(1-\phi)\frac{dT}{dt},
+\]
+meaning solid expansion reduces pore volume (sign convention).
+
+\textbf{Step 3: Apply product rule to the storage term.}
+\[
+\frac{\partial(\phi\rho^a S^a)}{\partial t}
+= \phi\frac{\partial(\rho^a S^a)}{\partial t} + \rho^a S^a\frac{d\phi}{dt}.
+\]
+
+\textbf{Step 4: Substitute the thermal porosity-rate approximation and set $s^a=0$.}
+\[
+\left(\phi\frac{\partial(\rho^a S^a)}{\partial t}\right)
+-\beta_s(1-\phi)\left(\rho^a S^a\right)\frac{dT}{dt}
++(\rho^a v^a)_{,i}=0.
+\]
+]
+{TM:DryAirMassBalance}
+{Dry Air Mass Conservation}
+{
+\[
+\left(\phi\frac{\partial\left(\rho^{a}S^{a}\right)}{\partial t}\right)
+-\beta_{s}(1-\phi)\left(\rho^{a}S^{a}\right)\frac{dT}{dt}
++\left(\rho^{a}v^{a}\right)_{,i}=0
+\]
+}
+{
+Mass conservation for the dry-air constituent in the gas phase, including a thermal-expansion (pore-volume change) contribution through $\beta_s$.
+}
+{
+$\rho^a$ dry air density; $S^a$ gas saturation; $v^a$ Darcy velocity of air; $T$ temperature; $\beta_s$ solid volumetric thermal expansion coefficient.
+}
+{None}
+{Porous media gas/air mass balance with thermal expansion correction}
+{IM:CoupledModel}
+{
+\begin{itemize}
+\item No sources/sinks of dry air inside the domain ($s^a=0$).
+\item Thermal expansion affects pore volume via $d\phi/dt \approx -\beta_s(1-\phi)dT/dt$ (small strain).
+\item Darcy-scale description (REV averaging).
+\end{itemize}
+}
+{}
+
+% ----------------------------------------------------------------
+% TM3: Dissolved salt transport (advection-diffusion-reaction)
+% ----------------------------------------------------------------
+\noindent
+\deftheory[
+\textbf{Derivation (from scratch):}
+
+\textbf{Step 1: Define dissolved salt mass stored in the liquid phase.}
+Salt dissolves only in liquid water; stored dissolved-salt mass per bulk volume:
+\[
+m_{\text{salt,dis}} = \phi\,\rho^w\,\omega\,S^w,
+\]
+where $\omega$ is salt mass concentration in solution.
+
+\textbf{Step 2: Write conservation of dissolved salt.}
+\[
+\frac{\partial(\phi\rho^w\omega S^w)}{\partial t} + (J_i)_{,i} = -\dot{m}_{\text{prec}},
+\]
+where $J_i$ is total dissolved salt flux and $\dot{m}_{\text{prec}}=dm_{\text{prec}}/dt$ is a sink for precipitation.
+
+\textbf{Step 3: Split flux into advection + diffusion.}
+Advection with liquid:
+\[
+J_i^{\text{adv}} = \phi\rho^w\omega S^w \bar{v}_i^w.
+\]
+Diffusion/dispersion (Fick-type):
+\[
+J_i^{\text{diff}} = -\rho^w D\,\omega_{,i}.
+\]
+So:
+\[
+J_i = \phi\rho^w\omega S^w \bar{v}_i^w - \rho^w D\,\omega_{,i}.
+\]
+
+\textbf{Step 4: Expand storage derivative and include thermal pore-volume effect.}
+Using
+\[
+\frac{\partial(\phi\rho^w\omega S^w)}{\partial t}
+= \phi\frac{\partial(\rho^w\omega S^w)}{\partial t} + (\rho^w\omega S^w)\frac{d\phi}{dt},
+\]
+and $d\phi/dt \approx -\beta_s(1-\phi)dT/dt$:
+\[
+\frac{\partial(\phi\rho^w\omega S^w)}{\partial t}
+= \phi\frac{\partial(\rho^w\omega S^w)}{\partial t}
+-\rho^w\omega S^w\beta_s(1-\phi)\frac{dT}{dt}.
+\]
+
+\textbf{Step 5: Substitute flux and storage into conservation form.}
+\[
+\phi \frac{\partial}{\partial t}\left(\rho^w\omega S^w\right)
+-\rho^w\omega S^w\beta_s(1-\phi)\frac{dT}{dt}
++\left(\phi\rho^w\omega S^w\bar{v}_i^w\right)_{,i}
+-\left(\rho^wD\,\omega_{,i}\right)_{,i}
+= -\frac{dm_{\text{prec}}}{dt}.
+\]
+]
+{TM:SaltTransportADR}
+{Chemical Transport (Advection--Diffusion--Reaction)}
+{
+\[
+\phi \frac{\partial}{\partial t}\left(\rho^{w}\omega S^{w}\right)
+-\rho^{w}\omega S^{w}\beta_{s}(1-\phi)\frac{dT}{dt}
++\left(\phi\rho^{w}\omega S^{w}\bar{v}^{w}_{i}\right)_{,i}
+-\left(\rho^{w}D\,\omega_{,i}\right)_{,i}
+= -\frac{d m_{\mathrm{prec}}}{dt}
+\]
+}
+{
+Transport of dissolved salt in the pore water including storage, advection with liquid flow,
+diffusion/dispersion, and precipitation/dissolution as a reaction sink/source term.
+}
+{
+$\omega$ salt mass concentration in solution; $\bar{v}^w_i$ liquid Darcy velocity; $D$ effective diffusion/dispersion;
+$m_{\mathrm{prec}}$ precipitated salt mass; other symbols as defined previously.
+}
+{None}
+{Advection--diffusion--reaction salt balance in porous media}
+{IM:CoupledModel}
+{
+\begin{itemize}
+\item Salt is dissolved only in liquid water (not in gas).
+\item Fick-type diffusion/dispersion with effective coefficient $D$.
+\item Reaction term $dm_{\mathrm{prec}}/dt$ defined by precipitation/dissolution kinetics.
+\item Pore-volume thermal effect included via $d\phi/dt \approx -\beta_s(1-\phi)dT/dt$ (small strain).
+\end{itemize}
+}
+{}
+
+% ----------------------------------------------------------------
+% TM4: Energy balance (conduction + convection + latent heats)
+% ----------------------------------------------------------------
+\noindent
+\deftheory[
+\textbf{Derivation (from scratch):}
+
+\textbf{Step 1: Start from REV-scale energy conservation.}
+Neglecting mechanical work and assuming quasi-static conditions:
+\[
+\frac{\partial U}{\partial t} + (q_i^{\text{adv}} + q_i^{\text{cond}})_{,i} = s_T,
+\]
+where $U$ is volumetric internal energy, $q_i^{\text{adv}}$ is advective heat flux,
+$q_i^{\text{cond}}$ is conductive heat flux, and $s_T$ is a heat source/sink.
+
+\textbf{Step 2: Local thermal equilibrium (LTE) and effective volumetric heat capacity.}
+With one temperature field $T$ for all phases:
+\[
+\frac{\partial U}{\partial t} \approx C_{\text{vol}} \frac{\partial T}{\partial t},
+\]
+where
+\[
+C_{\text{vol}} =
+(1-\phi)\rho^s C_p^s
++ \phi S^w \rho^w C_p^w
++ \phi S^a \rho^a C_p^a
++ \phi S^p \rho^p C_p^p.
+\]
+
+\textbf{Step 3: Advective heat flux (liquid + gas).}
+\[
+q_i^{\text{adv}} = \rho^w C_p^w v^w T + \rho^a C_p^a v^a T.
+\]
+A commonly used simplified divergence form in macroscopic models is:
+\[
+(q_i^{\text{adv}})_{,i} \approx
+\left(\rho^wC_p^w v^w + \rho^aC_p^a v^a\right)T_{,i}.
+\]
+
+\textbf{Step 4: Conductive flux (Fourier law).}
+\[
+q_i^{\text{cond}} = -\chi_{ef} T_{,i}
+\quad\Rightarrow\quad
+(q_i^{\text{cond}})_{,i} = -(\chi_{ef}T_{,i})_{,i}.
+\]
+
+\textbf{Step 5: Latent heat sources/sinks.}
+Evaporation/condensation:
+\[
+s_T^{\text{vap}} = -\frac{dm_{\text{vap}}}{dt}\Delta H_{evp}.
+\]
+Precipitation/dissolution:
+\[
+s_T^{\text{prec}} = -\frac{dm_{\text{prec}}}{dt}\Delta H_{prec}.
+\]
+
+\textbf{Step 6: Substitute all terms.}
+\[
+C_{\text{vol}}\frac{\partial T}{\partial t}
++\left(\rho^wC_p^wv^w+\rho^aC_p^av^a\right)T_{,i}
+-\left(\chi_{ef}T_{,i}\right)_{,i}
+=
+-\frac{dm_{\text{vap}}}{dt}\Delta H_{evp}
+-\frac{dm_{\text{prec}}}{dt}\Delta H_{prec}.
+\]
+]
+{TM:EnergyBalance}
+{Energy Conservation (Heat Transfer)}
+{
+\[
+\Big[
+(1-\phi)\rho^{s}C^{s}_{p}
++\phi S^{w}\rho^{w}C^{w}_{p}
++\phi S^{a}\rho^{a}C^{a}_{p}
++\phi S^{p}\rho^{p}C^{p}_{p}
+\Big]\frac{\partial T}{\partial t}
++\left(\rho_{w}C^{w}_{p}v^{w}+\rho_{a}C^{a}_{p}v^{a}\right)T_{,i}
+-\left(\chi_{ef}T_{,i}\right)_{,i}
+= -\frac{d m_{\mathrm{vap}}}{dt}\Delta H_{evp}
+-\frac{d m_{\mathrm{prec}}}{dt}\Delta H_{prec}
+\]
+}
+{
+Macroscopic energy conservation with phase-averaged heat storage, advection by liquid and gas,
+conduction through an effective thermal conductivity, and latent heat terms due to
+evaporation/condensation and precipitation/dissolution.
+}
+{
+$\rho^{(\cdot)}$ density; $C_p^{(\cdot)}$ specific heat; superscripts $s,w,a,p$ denote solid, water, air, precipitated salt.
+$\chi_{ef}$ effective conductivity; $\Delta H_{evp}$ vaporization enthalpy; $\Delta H_{prec}$ precipitation enthalpy.
+}
+{None}
+{REV-scale porous media energy balance (LTE assumption)}
+{IM:CoupledModel}
+{
+\begin{itemize}
+\item Local thermal equilibrium: one temperature field $T$ shared by phases.
+\item Effective conductivity $\chi_{ef}$ represents the composite porous medium.
+\item Advective heat transport by liquid and gas is represented using Darcy velocities.
+\item Latent heat terms are included via your phase-change and reaction models.
+\end{itemize}
+}
+{}
+
+% ----------------------------------------------------------------
+% TM5: Mechanical equilibrium (poroelastic coupling)
+% ----------------------------------------------------------------
+\noindent
+\deftheory[
+\textbf{Derivation (from scratch):}
+
+\textbf{Step 1: Start from quasi-static momentum balance (no inertia).}
+\[
+\sigma_{ij,j} + \rho g_i = 0.
+\]
+
+\textbf{Step 2: Effective stress (Biot-type decomposition).}
+\[
+\sigma_{ij} = \sigma'_{ij} - \beta\,p^{w}\delta_{ij},
+\]
+where $\sigma'_{ij}$ is effective stress, $p^w$ pore water pressure, $\beta$ Biot coefficient, and $\delta_{ij}$ is the Kronecker delta.
+
+\textbf{Step 3: Take divergence and use $(p^w\delta_{ij})_{,j}=p^w_{,i}$.}
+\[
+\sigma_{ij,j} = \sigma'_{ij,j} - \beta (p^w\delta_{ij})_{,j}
+= \sigma'_{ij,j} - \beta p^w_{,i}.
+\]
+
+\textbf{Step 4: Substitute into equilibrium.}
+\[
+\sigma'_{ij,j} - \beta p^w_{,i} + \rho g_i = 0.
+\]
+]
+{TM:MechanicalEquilibrium}
+{Mechanical Deformation (Poro-Mechanics)}
+{
+\[
+\sigma'_{ij,j}-\beta\,p^{w}_{,i}+\rho g_{i}=0
+\]
+}
+{
+Quasi-static mechanical equilibrium of the porous skeleton using an effective-stress (Biot) decomposition of total stress. The pore-water pressure contributes through its gradient.
+}
+{
+$\sigma'_{ij}$ effective stress tensor; $p^w$ pore water pressure; $\beta$ Biot coefficient; $\rho$ bulk density; $g_i$ gravity vector.
+}
+{None}
+{Poroelastic equilibrium equation (effective stress form)}
+{IM:CoupledModel}
+{
+\begin{itemize}
+\item Quasi-static mechanics (inertia neglected).
+\item Effective stress relationship $\sigma_{ij}=\sigma'_{ij}-\beta p^w\delta_{ij}$ is valid.
+\item Small strains unless otherwise stated.
+\end{itemize}
+}
+{}
+
+% =========================================================
+% Rest of your document continues unchanged
+% =========================================================
+
+\subsubsection{General Definitions}\label{sec_gendef}
+
+% =========================================================
+% GD1 — Darcy's Law (YOU ALREADY HAD)
+% =========================================================
+\noindent
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\hline
+\rowcolor[gray]{0.9}
+Number& GD\refstepcounter{defnum}\thedefnum \label{DarcyLaw}\\
+\hline
+Label &\bf Darcy's Law \\ \hline
+Equation&$ \mathbf{v}_\alpha = -\dfrac{k_{r\alpha} \mathbf{K}}{\mu_\alpha} (\nabla p_\alpha - \rho_\alpha \mathbf{g})$  \\ \hline
+Description & Describes fluid flow of phase $\alpha$ through porous media driven by pressure gradients and gravity. \\ \hline
+Source & Multiphase porous media theory \\ \hline
+Ref.\ By & IM:CoupledModel\\ \hline
+\end{tabular}
+\end{minipage}
+
+\noindent
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\hline
+\rowcolor[gray]{0.9}
+Number& GD\refstepcounter{defnum}\thedefnum \label{CapPressure}\\
+\hline
+Label &\bf Capillary Pressure \\ \hline
+Equation& $p^c = p^a - p^w$ \\ \hline
+Description & Defines capillary pressure as the difference between gas pressure and liquid pressure in a two-phase porous medium. \\ \hline
+Source & Multiphase flow theory \\ \hline
+Ref.\ By & TM:MoistureMassBalance \\ \hline
+\end{tabular}
+\end{minipage}
+
+\noindent
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\hline
+\rowcolor[gray]{0.9}
+Number& GD\refstepcounter{defnum}\thedefnum \label{vanGenuchten}\\
+\hline
+Label &\bf van Genuchten Retention Law \\ \hline
+Equation&
+$
+S_e = \dfrac{S^w - S_r}{1 - S_r},
+\qquad
+p^c = \dfrac{1}{\alpha}
+\left(S_e^{-1/m}-1\right)^{1/n},
+\qquad m=1-\dfrac{1}{n}
+$
+\\ \hline
+Description & Empirical capillary pressure–saturation relation. Parameters $\alpha$, $n$, and $S_r$ depend on porous material properties. \\ \hline
+Source & van Genuchten (1980) model \\ \hline
+Ref.\ By & DarcyLaw, TM:MoistureMassBalance \\ \hline
+\end{tabular}
+\end{minipage}
+
+\noindent
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\hline
+\rowcolor[gray]{0.9}
+Number& GD\refstepcounter{defnum}\thedefnum \label{LiquidDensity}\\
+\hline
+Label &\bf Liquid Density Equation of State \\ \hline
+Equation& $\rho^w = \rho_0^w f_\rho(T,\,p^w,\,\omega)$ \\ \hline
+Description & Generic equation of state for liquid density as a function of temperature, pressure, and dissolved salt concentration. \\ \hline
+Source & Fluid constitutive modeling \\ \hline
+Ref.\ By & TM:MoistureMassBalance, TM:SaltTransportADR \\ \hline
+\end{tabular}
+\end{minipage}
+
+\noindent
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\hline
+\rowcolor[gray]{0.9}
+Number& GD\refstepcounter{defnum}\thedefnum \label{ViscosityLaw}\\
+\hline
+Label &\bf Liquid Viscosity Dependence \\ \hline
+Equation& $\mu^w = \mu_0^w f_\mu(T,\,\omega)$ \\ \hline
+Description & Dynamic viscosity of the liquid phase varies with temperature and salt concentration. \\ \hline
+Source & Fluid constitutive modeling \\ \hline
+Ref.\ By & DarcyLaw, TM:SaltTransportADR \\ \hline
+\end{tabular}
+\end{minipage}
+
+\noindent
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\hline
+\rowcolor[gray]{0.9}
+Number& GD\refstepcounter{defnum}\thedefnum \label{PorosityReduction}\\
+\hline
+Label &\bf Porosity Reduction due to Salt Precipitation \\ \hline
+Equation& $\phi = \phi_0 (1 - S^p)$ \\ \hline
+Description & Precipitated salt occupies pore space and reduces effective porosity relative to the initial value $\phi_0$. \\ \hline
+Source & Phenomenological pore-clogging model \\ \hline
+Ref.\ By & TM:SaltTransportADR \\ \hline
+\end{tabular}
+\end{minipage}
+
+\noindent
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\hline
+\rowcolor[gray]{0.9}
+Number& GD\refstepcounter{defnum}\thedefnum \label{PermeabilityLaw}\\
+\hline
+Label &\bf Permeability–Porosity Relation \\ \hline
+Equation& $k = k_0 f_k(\phi)$ \\ \hline
+Description & Intrinsic permeability decreases as porosity decreases due to pore clogging. \\ \hline
+Source & Empirical porous media relations \\ \hline
+Ref.\ By & DarcyLaw \\ \hline
+\end{tabular}
+\end{minipage}
+
+\noindent
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\hline
+\rowcolor[gray]{0.9}
+Number& GD\refstepcounter{defnum}\thedefnum \label{Kinetics}\\
+\hline
+Label &\bf Crystallization / Dissolution Rate Law \\ \hline
+Equation&
+$
+\frac{dS^p}{dt} =
+\begin{cases}
+S^w K(\omega - A'\omega_{sat})^p, & \omega \ge A'\omega_{sat} \\
+- S^w K|\omega - A'\omega_{sat}|^p, & \omega < A'\omega_{sat}
+\end{cases}
+$
+\\ \hline
+Description & Non-equilibrium kinetic law governing salt precipitation and dissolution based on supersaturation. \\ \hline
+Source & Reaction-rate modeling \\ \hline
+Ref.\ By & TM:SaltTransportADR, TM:EnergyBalance \\ \hline
+\end{tabular}
+\end{minipage}
+
+
+\subsubsection{Data Definitions}\label{sec_datadef}
+
+\noindent
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\hline
+\rowcolor[gray]{0.9}
+Number& DD\refstepcounter{datadefnum}\thedatadefnum \label{Porosity}\\
+\hline
+Label& \bf Porosity\\
+\hline
+Symbol &$\phi$\\
+\hline
+SI Units & dimensionless\\
+\hline
+Equation& -- \\
+\hline
+Description & Ratio of void volume to total volume. \\
+\hline
+Ref.\ By & TM:MassBalance\\
+\hline
+\end{tabular}
+\end{minipage}
+\noindent
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\hline
+\rowcolor[gray]{0.9}
+Number& DD\refstepcounter{datadefnum}\thedatadefnum \label{Sw}\\
+\hline
+Label& \bf Water Saturation\\ \hline
+Symbol &$S^w$\\ \hline
+SI Units & dimensionless\\ \hline
+Equation& $0 \le S^w \le 1$ \\ \hline
+Description & Fraction of pore volume occupied by liquid water. \\ \hline
+Ref.\ By & TM:MoistureMassBalance \\ \hline
+\end{tabular}
+\end{minipage}
+\noindent
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\hline
+\rowcolor[gray]{0.9}
+Number& DD\refstepcounter{datadefnum}\thedatadefnum \label{Sa}\\
+\hline
+Label& \bf Air Saturation\\ \hline
+Symbol &$S^a$\\ \hline
+SI Units & dimensionless\\ \hline
+Equation& $S^a = 1 - S^w$ \\ \hline
+Description & Fraction of pore volume occupied by gas phase. \\ \hline
+Ref.\ By & TM:MoistureMassBalance \\ \hline
+\end{tabular}
+\end{minipage}
+\noindent
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\hline
+\rowcolor[gray]{0.9}
+Number& DD\refstepcounter{datadefnum}\thedatadefnum \label{Temp}\\
+\hline
+Label& \bf Temperature\\ \hline
+Symbol &$T$\\ \hline
+SI Units & K \\ \hline
+Equation& -- \\ \hline
+Description & Absolute temperature of the porous medium. \\ \hline
+Ref.\ By & TM:EnergyBalance \\ \hline
+\end{tabular}
+\end{minipage}
+\noindent
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\hline
+\rowcolor[gray]{0.9}
+Number& DD\refstepcounter{datadefnum}\thedatadefnum \label{Pw}\\
+\hline
+Label& \bf Water Pressure\\ \hline
+Symbol &$p^w$\\ \hline
+SI Units & Pa \\ \hline
+Equation& -- \\ \hline
+Description & Pressure of the liquid phase. \\ \hline
+Ref.\ By & DarcyLaw, TM:MechanicalEquilibrium \\ \hline
+\end{tabular}
+\end{minipage}
+\noindent
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\hline
+\rowcolor[gray]{0.9}
+Number& DD\refstepcounter{datadefnum}\thedatadefnum \label{Omega}\\
+\hline
+Label& \bf Salt Mass Concentration\\ \hline
+Symbol &$\omega$\\ \hline
+SI Units & kg/kg \\ \hline
+Equation& -- \\ \hline
+Description & Dissolved salt mass per mass of solution. \\ \hline
+Ref.\ By & TM:SaltTransportADR \\ \hline
+\end{tabular}
+\end{minipage}
+\noindent
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\hline
+\rowcolor[gray]{0.9}
+Number& DD\refstepcounter{datadefnum}\thedatadefnum \label{Sp}\\
+\hline
+Label& \bf Degree of Salt Crystallization\\ \hline
+Symbol &$S^p$\\ \hline
+SI Units & dimensionless \\ \hline
+Equation& $0 \le S^p \le 1$ \\ \hline
+Description & Fraction of pore volume occupied by precipitated salt crystals. \\ \hline
+Ref.\ By & TM:SaltTransportADR \\ \hline
+\end{tabular}
+\end{minipage}
+\noindent
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\hline
+\rowcolor[gray]{0.9}
+Number& DD\refstepcounter{datadefnum}\thedatadefnum \label{Permeability}\\
+\hline
+Label& \bf Intrinsic Permeability\\ \hline
+Symbol &$k$\\ \hline
+SI Units & m$^2$ \\ \hline
+Equation& -- \\ \hline
+Description & Measure of porous medium ability to transmit fluids. \\ \hline
+Ref.\ By & DarcyLaw \\ \hline
+\end{tabular}
+\end{minipage}
+\noindent
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\hline
+\rowcolor[gray]{0.9}
+Number& DD\refstepcounter{datadefnum}\thedatadefnum \label{Stress}\\
+\hline
+Label& \bf Effective Stress Tensor\\ \hline
+Symbol &$\sigma'_{ij}$\\ \hline
+SI Units & Pa \\ \hline
+Equation& -- \\ \hline
+Description & Stress carried by the solid skeleton excluding pore pressure. \\ \hline
+Ref.\ By & TM:MechanicalEquilibrium \\ \hline
+\end{tabular}
+\end{minipage}
+\noindent
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\hline
+\rowcolor[gray]{0.9}
+Number& DD\refstepcounter{datadefnum}\thedatadefnum \label{Biot}\\
+\hline
+Label& \bf Biot Coefficient\\ \hline
+Symbol &$\beta$\\ \hline
+SI Units & dimensionless \\ \hline
+Equation& -- \\ \hline
+Description & Coupling parameter linking pore pressure to solid stress. \\ \hline
+Ref.\ By & TM:MechanicalEquilibrium \\ \hline
+\end{tabular}
+\end{minipage}
+
+\subsubsection{Instance Models} \label{sec_instance}
+
+\noindent
+\begin{minipage}{\textwidth}
+\renewcommand*{\arraystretch}{1.5}
+\begin{tabular}{| p{\colAwidth} | p{\colBwidth}|}
+\hline
+\rowcolor[gray]{0.9}
+Number& IM\refstepcounter{instnum}\theinstnum \label{CoupledModel}\\
+\hline
+Label& \bf Coupled Hydro--Thermal--Chemical--Mechanical Model\\
+\hline
+Input& Geometry, initial conditions, boundary conditions, material properties\\
+\hline
+Output& Pressure, temperature, stress, displacement\\
+\hline
+Description& Solves the coupled system defined by TMs and GDs under specified auxiliary conditions.\\
+\hline
+Ref.\ By & Requirements\\
+\hline
+\end{tabular}
+\end{minipage}
+
+\subsubsection{Input Data Constraints} \label{sec_DataConstraints}
+
+Table~\ref{TblInputVar} shows data constraints on input variables.
+
+\begin{table}[H]
+\caption{Input Variables} \label{TblInputVar}
+\renewcommand{\arraystretch}{1.2}
+\centering
+\begin{tabular}{l l l l l}
+\toprule
+\textbf{Var} & \textbf{Physical Constraints} & \textbf{Software Constraints} &
+\textbf{Typical Value} & \textbf{Uncertainty}\\
+\midrule
+
+$\phi$ & $0 \le \phi \le 1$ & Must be positive, non-zero for flow solver & 0.30 & 10\% \\
+
+$S^w$ & $0 \le S^w \le 1$ & Must satisfy $S^w + S^a = 1$ & 0.20–0.95 & 15\% \\
+
+$k$ & $k > 0$ & Must be above solver tolerance & $10^{-16}$–$10^{-12}$ m$^2$ & 30\% \\
+
+$p^c$ & $p^c \ge 0$ & Cannot produce negative effective saturation & 0–5000 Pa & 20\% \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\subsubsection{Properties of a Correct Solution} \label{sec_CorrectSolution}
+
+A correct solution must exhibit conservation of mass and energy within a specified tolerance.
+
+\section{Requirements}
+
+\subsection{Functional Requirements}
+
+\begin{itemize}
+\item[R\refstepcounter{reqnum}\thereqnum \label{R_Inputs}:]
+The user shall enter geometry, material properties ($\phi, \rho, E, \nu$), and initial/boundary conditions.
+
+\item[R\refstepcounter{reqnum}\thereqnum \label{R_OutputInputs}:]
+The system shall echo the inputs to the output to facilitate verification.
+
+\item[R\refstepcounter{reqnum}\thereqnum \label{R_Calculate}:]
+The system shall compute pressure, temperature, chemical concentration, and displacement fields by solving IM\ref{CoupledModel}.
+
+\item[R\refstepcounter{reqnum}\thereqnum \label{R_VerifyOutput}:]
+The system shall verify conservation of mass and energy within specified tolerances.
+
+\item[R\refstepcounter{reqnum}\thereqnum \label{R_Output}:]
+The system shall output results in visualization-ready formats (e.g., VTK) and as CSV time series.
+\end{itemize}
+
+\subsection{Nonfunctional Requirements}
+
+\begin{itemize}
+\item[NFR\refstepcounter{nfrnum}\thenfrnum \label{NFR_Accuracy}:]
+\textbf{Accuracy:} The mass balance residuals of the coupled system shall remain below $10^{-6}$ (relative) at each time step. Temperature and pressure fields shall agree with available benchmark analytical solutions or experimental reference data within 1\% relative error under equivalent boundary conditions.
+
+\item[NFR\refstepcounter{nfrnum}\thenfrnum \label{NFR_Usability}:]
+\textbf{Usability:} The system shall be usable by the intended readers (Section~\ref{sec_IntendedReader}) with clear documentation and reasonable defaults.
+
+\item[NFR\refstepcounter{nfrnum}\thenfrnum \label{NFR_Maintainability}:]
+\textbf{Maintainability:} The effort required to implement likely changes shall be substantially less than the original development effort.
+
+\item[NFR\refstepcounter{nfrnum}\thenfrnum \label{NFR_Portability}:]
+\textbf{Portability:} The software shall run on common Windows/Linux environments used in academic research.
+\end{itemize}
+
+\section{Likely Changes}
+
+\begin{itemize}
+\item[LC\refstepcounter{lcnum}\thelcnum\label{LC_Modules}:]
+The system may be extended with additional coupled physics modules (e.g., reactive transport models and Constitutive law for mechanical part).
+\end{itemize}
+
+\section{Unlikely Changes}
+
+\begin{itemize}
+\item[LC\refstepcounter{lcnum}\thelcnum\label{LC_Fundamental}:]
+The fundamental conservation laws used in the theoretical models are unlikely to change.
+\end{itemize}
+
+\section{Traceability Matrices and Graphs}
+
+\begin{table}[H]
+\caption{Traceability Matrix: Connections Between Models and Requirements}
+\label{Table:trace}
+\renewcommand{\arraystretch}{1.2}
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Item} & \textbf{Depends On} \\
+\hline
+TM:MoistureMassBalance & \ref{Porosity} (DD), \ref{Sw} (DD), \ref{Sa} (DD), A\ref{A_Continuum}, A\ref{A_DarcyValidity} \\
+TM:DryAirMassBalance   & \ref{Porosity} (DD), \ref{Sa} (DD), A\ref{A_Continuum} \\
+TM:SaltTransportADR    & \ref{Porosity} (DD), \ref{Sw} (DD), \ref{Omega} (DD), GD\ref{Kinetics} \\
+TM:EnergyBalance       & \ref{Sw} (DD), \ref{Temp} (DD), \ref{Sp} (DD), A\ref{A_LTE}, GD\ref{Kinetics} \\
+TM:MechanicalEquilibrium & \ref{Pw} (DD), \ref{Stress} (DD), \ref{Biot} (DD), A\ref{A_SmallStrain} \\
+GD:DarcyLaw            & TM:MoistureMassBalance, TM:DryAirMassBalance \\
+GD:CapillaryPressure   & TM:MoistureMassBalance \\
+GD:VanGenuchten        & GD:DarcyLaw, TM:MoistureMassBalance \\
+GD:Kinetics            & TM:SaltTransportADR, TM:EnergyBalance \\
+IM:CoupledModel        & TM:MoistureMassBalance, TM:DryAirMassBalance, TM:SaltTransportADR, \\
+                       & TM:EnergyBalance, TM:MechanicalEquilibrium, GD:DarcyLaw \\
+\hline
+\rref{R_Inputs}        & -- (user provided) \\
+\rref{R_OutputInputs}  & \rref{R_Inputs} \\
+\rref{R_Calculate}     & IM:CoupledModel \\
+\rref{R_VerifyOutput}  & \rref{R_Calculate}, NFR\ref{NFR_Accuracy} \\
+\rref{R_Output}        & \rref{R_Calculate} \\
+\hline
+\end{tabular}
+\end{table}
+
+Table~\ref{Table:A_trace} shows the connections between assumptions and theoretical models.
+
+\begin{table}[H]
+\caption{Traceability Matrix: Assumptions vs.\ Theoretical Models}
+\label{Table:A_trace}
+\renewcommand{\arraystretch}{1.2}
+\centering
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
+ & TM:Moist. & TM:Air & TM:Salt & TM:Energy & TM:Mech. \\
+\hline
+A\ref{A_Continuum}   & X & X & X & X & X \\
+A\ref{A_LTE}         &   &   &   & X &   \\
+A\ref{A_SmallStrain} &   &   &   &   & X \\
+A\ref{A_DarcyValidity} & X & X & X &   &   \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Development Plan}
+
+Requirements will be implemented in phases: core input/output and basic flow solver first, followed by thermal and chemical coupling, and finally the mechanical/damage module and validation tools.
+
+\section{Values of Auxiliary Constants}
+
+\begin{table}[H]
+\caption{Auxiliary Constants Used in IMPS}
+\label{TblAuxConst}
+\renewcommand{\arraystretch}{1.2}
+\centering
+\begin{tabular}{l l l l}
+\toprule
+\textbf{Symbol} & \textbf{Value} & \textbf{Unit} & \textbf{Description} \\
+\midrule
+$g$ & 9.81 & m/s$^2$ & Gravitational acceleration \\
+$M_{H_2O}$ & 0.018015 & kg/mol & Molar mass of pure water \\
+$M_{Na_2SO_4 \cdot 10H_2O}$ & 0.322195 & kg/mol & Molar mass of mirabilite \\
+$M_{Na_2SO_4}$ & 0.142042 & kg/mol & Molar mass of thenardite \\
+$\Delta H_{evp}$ & $2.45 \times 10^6$ & J/kg & Enthalpy of vaporization of water at 20\,°C \\
+$\Delta H_{prec}$ & $7.8 \times 10^4$ & J/kg & Enthalpy of mirabilite crystallization \\
+$\varepsilon_{\mathrm{tol}}$ & $10^{-6}$ & -- & Nonlinear solver convergence tolerance \\
+$\Delta t_{\min}$ & $10^{-3}$ & s & Minimum allowed time step \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{thebibliography}{9}
+
+\bibitem{SmithAndLai2005}
+Spencer Smith and Lei Lai.
+\textit{A new requirements template for scientific computing}.
+In \textit{Proceedings of the First International Workshop on Situational Requirements Engineering Processes (SREP)}, 2005.
+
+\bibitem{SmithEtAl2007}
+Spencer Smith, Lei Lai, and Ridha Khedri.
+\textit{Requirements analysis for engineering computation: A systematic approach for improving software reliability}.
+\textit{Reliable Computing}, 13(1):83--107, 2007.
+
+\bibitem{SmithAndKoothoor2016}
+Spencer Smith and Nirmitha Koothoor.
+\textit{A document-driven method for certifying scientific computing software for use in nuclear safety analysis}.
+\textit{Nuclear Engineering and Technology}, 48(2):404--418, 2016.
+
+\bibitem{vanGenuchten1980}
+M.~Th.\ van Genuchten.
+\textit{A closed-form equation for predicting the hydraulic conductivity of unsaturated soils}.
+\textit{Soil Science Society of America Journal}, 44(5):892--898, 1980.
+
+\bibitem{Biot1941}
+Maurice~A.\ Biot.
+\textit{General theory of three-dimensional consolidation}.
+\textit{Journal of Applied Physics}, 12(2):155--164, 1941.
+
+\bibitem{Darcy1856}
+Henry Darcy.
+\textit{Les fontaines publiques de la ville de Dijon}.
+Dalmont, Paris, 1856.
+
+\bibitem{PietruszczakEtAl}
+Stan Pietruszczak, G.~Pande, and D.~Lydzba.
+\textit{On the mechanics of crystallization pressure in porous materials}.
+\textit{International Journal for Numerical and Analytical Methods in Geomechanics}, 2004.
+
+\end{thebibliography}
+
+\newpage
+\section*{Appendix --- Reflection}
+
+This project refines an existing MATLAB research codebase into a structured, modular software platform for coupled multi-physics simulation in porous media. The SRS has been challenging primarily because the system involves five tightly coupled physical processes (hydraulic, thermal, chemical, and mechanical, along with salt phase change), each governed by its own PDE. Choosing the right level of abstraction for the requirements --- specific enough to be verifiable, yet abstract enough to remain implementation-independent --- required careful deliberation.
+
+The peer review process highlighted several gaps that were subsequently addressed: the accuracy NFR was made quantitative and testable, the traceability matrix was populated with real dependencies derived from the theoretical model cross-references, the auxiliary constants were formally tabulated, and the bibliography was updated to include the actual references used in the theoretical derivations. These revisions improve the document's internal consistency and verifiability.
+
+\end{document}
