@@ -1,7 +1,6 @@
 \documentclass[12pt, titlepage]{article}
 
 \usepackage{amsmath, mathtools}
-
 \usepackage[round]{natbib}
 \usepackage{amsfonts}
 \usepackage{amssymb}
@@ -21,12 +20,12 @@
 \usepackage{fullpage}
 
 \hypersetup{
-bookmarks=true,     % show bookmarks bar?
-colorlinks=true,       % false: boxed links; true: colored links
-linkcolor=red,          % color of internal links (change box color with linkbordercolor)
-citecolor=blue,      % color of links to bibliography
-filecolor=magenta,  % color of file links
-urlcolor=cyan          % color of external links
+bookmarks=true,
+colorlinks=true,
+linkcolor=red,
+citecolor=blue,
+filecolor=magenta,
+urlcolor=cyan
 }
 
 \usepackage{array}
@@ -53,8 +52,8 @@ urlcolor=cyan          % color of external links
 \begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
 \toprule {\bf Date} & {\bf Version} & {\bf Notes}\\
 \midrule
-Date 1 & 1.0 & Notes\\
-Date 2 & 1.1 & Notes\\
+2026-03-23 & 1.0 & Initial MG/MIS presentation draft\\
+2026-04-02 & 1.1 & Full MIS formalization aligned with 8-module implementation\\
 \bottomrule
 \end{tabularx}
 
@@ -62,9 +61,25 @@ Date 2 & 1.1 & Notes\\
 
 \section{Symbols, Abbreviations and Acronyms}
 
-See SRS Documentation at \wss{give url}
-
-\wss{Also add any additional symbols, abbreviations or acronyms}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{l l}
+\toprule
+\textbf{Symbol} & \textbf{Description}\\
+\midrule
+MIS & Module Interface Specification \\
+MG  & Module Guide \\
+SRS & Software Requirements Specification \\
+ABC & Abstract Base Class (Python interface enforcement) \\
+M1--M8 & Module identifiers as defined in the MG \\
+$\mathbb{R}$ & Real number \\
+$\mathbb{Z}$ & Integer \\
+$\mathbb{N}$ & Natural number \\
+Point2D & A tuple $(x, y) \in \mathbb{R}^2$ representing image coordinates \\
+Point3D & A tuple $(x, y, z) \in \mathbb{R}^3$ representing 3D coordinates \\
+JointID & An integer index identifying a MediaPipe pose landmark \\
+LandmarkList & A sequence of 33 Point3D landmarks \\
+\bottomrule
+\end{tabular}
 
 \newpage
 
@@ -77,48 +92,44 @@ See SRS Documentation at \wss{give url}
 \section{Introduction}
 
 The following document details the Module Interface Specifications for
-\wss{Fill in your project name and description}
+\progname{}, an augmented reality application that provides real-time
+biomechanical feedback for fitness exercise using a standard webcam.
 
 Complementary documents include the System Requirement Specifications
-and Module Guide.  The full documentation and implementation can be
-found at \url{...}.  \wss{provide the url for your repo}
+and Module Guide. The full documentation and implementation can be
+found at \url{https://github.com/mmdmirh/cas741}.
 
 \section{Notation}
 
-\wss{You should describe your notation.  You can use what is below as
-  a starting point.}
-
 The structure of the MIS for modules comes from \citet{HoffmanAndStrooper1995},
 with the addition that template modules have been adapted from
-\cite{GhezziEtAl2003}.  The mathematical notation comes from Chapter 3 of
-\citet{HoffmanAndStrooper1995}.  For instance, the symbol := is used for a
-multiple assignment statement and conditional rules follow the form $(c_1
-\Rightarrow r_1 | c_2 \Rightarrow r_2 | ... | c_n \Rightarrow r_n )$.
+\cite{GhezziEtAl2003}. The mathematical notation comes from Chapter 3 of
+\citet{HoffmanAndStrooper1995}. The symbol := is used for assignment and
+conditional rules follow the form $(c_1 \Rightarrow r_1 \mid c_2 \Rightarrow r_2)$.
 
-The following table summarizes the primitive data types used by \progname. 
+The following table summarizes the primitive data types used by \progname.
 
 \begin{center}
 \renewcommand{\arraystretch}{1.2}
-\noindent 
-\begin{tabular}{l l p{7.5cm}} 
-\toprule 
-\textbf{Data Type} & \textbf{Notation} & \textbf{Description}\\ 
+\noindent
+\begin{tabular}{l l p{7.5cm}}
+\toprule
+\textbf{Data Type} & \textbf{Notation} & \textbf{Description}\\
 \midrule
 character & char & a single symbol or digit\\
-integer & $\mathbb{Z}$ & a number without a fractional component in (-$\infty$, $\infty$) \\
-natural number & $\mathbb{N}$ & a number without a fractional component in [1, $\infty$) \\
-real & $\mathbb{R}$ & any number in (-$\infty$, $\infty$)\\
+integer & $\mathbb{Z}$ & a number without a fractional component in $(-\infty, \infty)$ \\
+natural number & $\mathbb{N}$ & a number without a fractional component in $[1, \infty)$ \\
+real & $\mathbb{R}$ & any number in $(-\infty, \infty)$\\
+boolean & $\mathbb{B}$ & \texttt{True} or \texttt{False}\\
 \bottomrule
-\end{tabular} 
+\end{tabular}
 \end{center}
 
 \noindent
-The specification of \progname \ uses some derived data types: sequences, strings, and
-tuples. Sequences are lists filled with elements of the same data type. Strings
-are sequences of characters. Tuples contain a list of values, potentially of
-different types. In addition, \progname \ uses functions, which
-are defined by the data types of their inputs and outputs. Local functions are
-described by giving their type signature followed by their specification.
+Derived types used include: sequences (ordered lists of same-type elements),
+tuples (fixed-length heterogeneous collections), and functions (typed
+input/output mappings). Interfaces are enforced in Python via Abstract Base
+Classes (ABCs) from the \texttt{abc} module.
 
 \section{Module Decomposition}
 
@@ -131,21 +142,18 @@ The following table is taken directly from the Module Guide document for this pr
 \textbf{Level 1} & \textbf{Level 2}\\
 \midrule
 
-{Hardware-Hiding} & ~ \\
+{Hardware-Hiding} & M1: Video Input Module \\
 \midrule
 
-\multirow{7}{0.3\textwidth}{Behaviour-Hiding} & Input Parameters\\
-& Output Format\\
-& Output Verification\\
-& Temperature ODEs\\
-& Energy Equations\\ 
-& Control Module\\
-& Specification Parameters Module\\
+\multirow{4}{0.3\textwidth}{Behaviour-Hiding} & M2: Display Output Module\\
+& M3: Video Formatting Module\\
+& M6: Exercise State Module\\
+& M7: UI Rendering Module\\
 \midrule
 
-\multirow{3}{0.3\textwidth}{Software Decision} & {Sequence Data Structure}\\
-& ODE Solver\\
-& Plotting\\
+\multirow{3}{0.3\textwidth}{Software Decision} & M4: Pose Tracking Module\\
+& M5: Kinematic Engine Module\\
+& M8: Signal Smoothing Module\\
 \bottomrule
 
 \end{tabular}
@@ -154,34 +162,31 @@ The following table is taken directly from the Module Guide document for this pr
 \end{table}
 
 \newpage
-~\newpage
 
-\section{MIS of \wss{Module Name}} \label{Module} \wss{Use labels for
-  cross-referencing}
-
-\wss{You can reference SRS labels, such as R\ref{R_Inputs}.}
-
-\wss{It is also possible to use \LaTeX for hypperlinks to external documents.}
+%-----------------------------------------------------------------------
+\section{MIS of M3: Video Formatting Module} \label{M3}
+%-----------------------------------------------------------------------
 
 \subsection{Module}
-
-\wss{Short name for the module}
+\texttt{m3\_video\_formatting} (\texttt{backend/modules/m3\_video\_formatting.py})
 
 \subsection{Uses}
-
+M1 (Video Input)
 
 \subsection{Syntax}
 
 \subsubsection{Exported Constants}
+None.
 
 \subsubsection{Exported Access Programs}
 
 \begin{center}
-\begin{tabular}{p{2cm} p{4cm} p{4cm} p{2cm}}
+\begin{tabular}{p{3.5cm} p{4cm} p{3cm} p{2cm}}
 \hline
 \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
 \hline
-\wss{accessProg} & - & - & - \\
+\texttt{encode\_frame} & frame: bytes & encoded: str & \texttt{ValueError} \\
+\texttt{decode\_frame} & encoded: str & frame: bytes & \texttt{ValueError} \\
 \hline
 \end{tabular}
 \end{center}
@@ -189,91 +194,311 @@ The following table is taken directly from the Module Guide document for this pr
 \subsection{Semantics}
 
 \subsubsection{State Variables}
-
-\wss{Not all modules will have state variables.  State variables give the module
-  a memory.}
+None. (Stateless conversion module.)
 
 \subsubsection{Environment Variables}
-
-\wss{This section is not necessary for all modules.  Its purpose is to capture
-  when the module has external interaction with the environment, such as for a
-  device driver, screen interface, keyboard, file, etc.}
+Raw JPEG/PNG image data from the webcam feed.
 
 \subsubsection{Assumptions}
-
-\wss{Try to minimize assumptions and anticipate programmer errors via
-  exceptions, but for practical purposes assumptions are sometimes appropriate.}
+Input bytes represent a valid compressed image (JPEG or PNG).
 
 \subsubsection{Access Routine Semantics}
 
-\noindent \wss{accessProg}():
+\noindent \texttt{encode\_frame(frame)}:
 \begin{itemize}
-\item transition: \wss{if appropriate} 
-\item output: \wss{if appropriate} 
-\item exception: \wss{if appropriate} 
+  \item output: Base64-encoded UTF-8 string representation of the raw image bytes.
+  \item exception: \texttt{ValueError} if \texttt{frame} is empty or not valid image bytes.
 \end{itemize}
 
-\wss{A module without environment variables or state variables is unlikely to
-  have a state transition.  In this case a state transition can only occur if
-  the module is changing the state of another module.}
+\noindent \texttt{decode\_frame(encoded)}:
+\begin{itemize}
+  \item output: Raw image bytes decoded from the Base64 string.
+  \item exception: \texttt{ValueError} if \texttt{encoded} is not valid Base64.
+\end{itemize}
 
-\wss{Modules rarely have both a transition and an output.  In most cases you
-  will have one or the other.}
+\newpage
+
+%-----------------------------------------------------------------------
+\section{MIS of M4: Pose Tracking Module} \label{M4}
+%-----------------------------------------------------------------------
+
+\subsection{Module}
+\texttt{m4\_pose\_tracking} (\texttt{backend/modules/m4\_pose\_tracking.py})
+
+\subsection{Uses}
+M3 (Video Formatting), M8 (Signal Smoothing)
+
+\subsection{Syntax}
+
+\subsubsection{Exported Constants}
+\texttt{NUM\_LANDMARKS} := 33 (number of MediaPipe Pose landmarks)
+
+\subsubsection{Exported Access Programs}
+
+\begin{center}
+\begin{tabular}{p{3.5cm} p{4cm} p{3.5cm} p{2cm}}
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+\hline
+\texttt{detect} & frame: bytes & LandmarkList & \texttt{DetectionError}\\
+\texttt{is\_visible} & landmarks: LandmarkList, id: JointID & $\mathbb{B}$ & - \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Semantics}
+
+\subsubsection{State Variables}
+\begin{itemize}
+  \item \texttt{model}: Loaded ML inference model (MediaPipe Pose instance).
+\end{itemize}
+
+\subsubsection{Environment Variables}
+\begin{itemize}
+  \item Webcam image frame (from M3).
+\end{itemize}
+
+\subsubsection{Assumptions}
+\begin{itemize}
+  \item The input frame contains at most one person.
+  \item Lighting conditions meet minimum MediaPipe requirements.
+\end{itemize}
+
+\subsubsection{Access Routine Semantics}
+
+\noindent \texttt{detect(frame)}:
+\begin{itemize}
+  \item output: A sequence of 33 landmarks, each with $(x, y, z, \text{visibility})$ where $x, y, z \in [0.0, 1.0]$ normalized to image dimensions.
+  \item exception: \texttt{DetectionError} if the frame cannot be decoded or no person is detected.
+\end{itemize}
+
+\noindent \texttt{is\_visible(landmarks, id)}:
+\begin{itemize}
+  \item output: \texttt{True} iff \texttt{landmarks[id].visibility} $> 0.5$.
+\end{itemize}
+
+\newpage
+
+%-----------------------------------------------------------------------
+\section{MIS of M5: Kinematic Engine Module} \label{M5}
+%-----------------------------------------------------------------------
+
+\subsection{Module}
+\texttt{m5\_kinematic\_engine} (\texttt{backend/modules/m5\_kinematic\_engine.py})
+
+\subsection{Uses}
+M4 (Pose Tracking)
+
+\subsection{Syntax}
+
+\subsubsection{Exported Constants}
+None.
+
+\subsubsection{Exported Access Programs}
+
+\begin{center}
+\begin{tabular}{p{4cm} p{4.5cm} p{2.5cm} p{2.5cm}}
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+\hline
+\texttt{compute\_angle} & a, b, c: Point3D & $\mathbb{R}$ & \texttt{ValueError}\\
+\texttt{extract\_metrics} & landmarks: LandmarkList, exercise: str & dict & \texttt{KeyError}\\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Semantics}
+
+\subsubsection{State Variables}
+None. (Stateless computation module.)
+
+\subsubsection{Environment Variables}
+None.
+
+\subsubsection{Assumptions}
+\begin{itemize}
+  \item All three points $a$, $b$, $c$ are non-collinear (i.e., $\|a - b\| > 0$ and $\|c - b\| > 0$).
+  \item \texttt{exercise} string is one of the recognized exercise types (e.g., \texttt{"squat"}, \texttt{"curl"}).
+\end{itemize}
+
+\subsubsection{Access Routine Semantics}
+
+\noindent \texttt{compute\_angle(a, b, c)}:
+\begin{itemize}
+  \item output: The angle $\theta$ at joint $b$ formed by vectors $\overrightarrow{ba}$ and $\overrightarrow{bc}$, in degrees:
+  $$\theta = \arccos\left(\frac{\overrightarrow{ba} \cdot \overrightarrow{bc}}{\|\overrightarrow{ba}\| \cdot \|\overrightarrow{bc}\|}\right) \times \frac{180}{\pi}$$
+  where $\theta \in [0, 180]$.
+  \item exception: \texttt{ValueError} if any input vector has zero magnitude.
+\end{itemize}
+
+\noindent \texttt{extract\_metrics(landmarks, exercise)}:
+\begin{itemize}
+  \item output: A dictionary \texttt{\{"primary": $\mathbb{R}$, "form": dict\}} where:
+  \begin{itemize}
+    \item \texttt{primary}: The main joint angle driving the rep count.
+    \item \texttt{form}: A dictionary of secondary form metrics (e.g., \texttt{knee\_valgus\_index}, \texttt{torso\_lean}).
+  \end{itemize}
+  \item exception: \texttt{KeyError} if \texttt{exercise} is not a recognized type.
+\end{itemize}
 
 \subsubsection{Local Functions}
 
-\wss{As appropriate} \wss{These functions are for the purpose of specification.
-  They are not necessarily something that is going to be implemented
-  explicitly.  Even if they are implemented, they are not exported; they only
-  have local scope.}
+\noindent \texttt{\_get\_coords(landmarks, id: JointID) $\rightarrow$ Point3D}:
+\begin{itemize}
+  \item Returns $(x, y, z)$ for landmark at index \texttt{id}.
+\end{itemize}
+
+\noindent \texttt{\_compute\_distance(p1, p2: Point3D) $\rightarrow \mathbb{R}$}:
+\begin{itemize}
+  \item Returns Euclidean distance $\|p1 - p2\|$.
+\end{itemize}
+
+\newpage
+
+%-----------------------------------------------------------------------
+\section{MIS of M6: Exercise State Module} \label{M6}
+%-----------------------------------------------------------------------
+
+\subsection{Module}
+\texttt{m6\_exercise\_state} (\texttt{backend/modules/m6\_exercise\_state.py})
+
+\subsection{Uses}
+M5 (Kinematic Engine)
+
+\subsection{Syntax}
+
+\subsubsection{Exported Constants}
+\begin{itemize}
+  \item \texttt{STATES} := \{\texttt{BOTTOM}, \texttt{UP\_PHASE}, \texttt{TOP}, \texttt{DOWN\_PHASE}\}
+\end{itemize}
+
+\subsubsection{Exported Access Programs}
+
+\begin{center}
+\begin{tabular}{p{3.5cm} p{4cm} p{3cm} p{2cm}}
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+\hline
+\texttt{update} & angle: $\mathbb{R}$, dt: $\mathbb{R}$ & state: str & - \\
+\texttt{get\_rep\_count} & - & $\mathbb{N}$ & - \\
+\texttt{reset} & - & - & - \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Semantics}
+
+\subsubsection{State Variables}
+\begin{itemize}
+  \item \texttt{current\_state}: str $\in$ \texttt{STATES}
+  \item \texttt{rep\_count}: $\mathbb{N}$
+  \item \texttt{angle\_min}: $\mathbb{R}$ (minimum angle observed in current rep)
+  \item \texttt{angle\_max}: $\mathbb{R}$ (maximum angle observed in current rep)
+\end{itemize}
+
+\subsubsection{Environment Variables}
+None.
+
+\subsubsection{Assumptions}
+\begin{itemize}
+  \item Angles are produced by M5 at a rate sufficient for state detection ($\geq$ 15 fps).
+  \item Calibration parameters (ROM thresholds) are set before \texttt{update} is called.
+\end{itemize}
+
+\subsubsection{Access Routine Semantics}
+
+\noindent \texttt{update(angle, dt)}:
+\begin{itemize}
+  \item transition: Advances the state machine according to:
+  \begin{align*}
+    \texttt{BOTTOM} &\xrightarrow{\text{angle} \geq \theta_{top\_min}} \texttt{UP\_PHASE} \\
+    \texttt{UP\_PHASE} &\xrightarrow{\text{angle} \geq \theta_{top\_max}} \texttt{TOP} \\
+    \texttt{TOP} &\xrightarrow{\text{angle} \leq \theta_{bottom\_max}} \texttt{DOWN\_PHASE} \\
+    \texttt{DOWN\_PHASE} &\xrightarrow{\text{angle} \leq \theta_{bottom\_min}} \texttt{BOTTOM},\; \texttt{rep\_count} := \texttt{rep\_count} + 1
+  \end{align*}
+  \item output: The new \texttt{current\_state} string after the transition.
+\end{itemize}
+
+\noindent \texttt{get\_rep\_count()}:
+\begin{itemize}
+  \item output: Current value of \texttt{rep\_count}.
+\end{itemize}
+
+\noindent \texttt{reset()}:
+\begin{itemize}
+  \item transition: \texttt{rep\_count} := 0, \texttt{current\_state} := \texttt{BOTTOM}.
+\end{itemize}
+
+\newpage
+
+%-----------------------------------------------------------------------
+\section{MIS of M8: Signal Smoothing Module} \label{M8}
+%-----------------------------------------------------------------------
+
+\subsection{Module}
+\texttt{m8\_signal\_smoothing} (\texttt{backend/modules/m8\_signal\_smoothing.py})
+
+\subsection{Uses}
+M4 (Pose Tracking)
+
+\subsection{Syntax}
+
+\subsubsection{Exported Constants}
+None.
+
+\subsubsection{Exported Access Programs}
+
+\begin{center}
+\begin{tabular}{p{3.5cm} p{4.5cm} p{3cm} p{2cm}}
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+\hline
+\texttt{smooth} & measurement: $\mathbb{R}$ & estimate: $\mathbb{R}$ & - \\
+\texttt{smooth\_landmarks} & landmarks: LandmarkList & LandmarkList & - \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Semantics}
+
+\subsubsection{State Variables}
+\begin{itemize}
+  \item \texttt{x\_est}: $\mathbb{R}$ --- current state estimate
+  \item \texttt{P}: $\mathbb{R}$ --- estimation error covariance
+  \item \texttt{Q}: $\mathbb{R}$ --- process noise covariance
+  \item \texttt{R}: $\mathbb{R}$ --- measurement noise covariance
+\end{itemize}
+
+\subsubsection{Environment Variables}
+None.
+
+\subsubsection{Assumptions}
+\begin{itemize}
+  \item Measurements are scalar real values from M4 at a fixed frame rate.
+  \item Process and measurement noise covariances $Q$ and $R$ are tuned to match webcam noise characteristics.
+\end{itemize}
+
+\subsubsection{Access Routine Semantics}
+
+\noindent \texttt{smooth(measurement)}:
+\begin{itemize}
+  \item transition: One-step Kalman filter update:
+  \begin{align*}
+    K &:= P / (P + R) & \text{(Kalman Gain)}\\
+    x\_est &:= x\_est + K \times (measurement - x\_est) & \text{(State Update)}\\
+    P &:= (1 - K) \times P + Q & \text{(Covariance Update)}
+  \end{align*}
+  \item output: Updated \texttt{x\_est} (the filtered scalar estimate).
+\end{itemize}
+
+\noindent \texttt{smooth\_landmarks(landmarks)}:
+\begin{itemize}
+  \item output: A new LandmarkList where each $(x, y, z)$ coordinate of every landmark has been individually filtered by \texttt{smooth()}.
+\end{itemize}
 
 \newpage
 
 \bibliographystyle {plainnat}
 \bibliography {../../../refs/References}
 
-\newpage
-
-\section{Appendix} \label{Appendix}
-
-\wss{Extra information if required}
-
-\newpage{}
-
-\section*{Appendix --- Reflection}
-
-\wss{Not required for CAS 741 projects}
-
-The information in this section will be used to evaluate the team members on the
-graduate attribute of Problem Analysis and Design.
-
-\input{../../Reflection.text}
-
-\begin{enumerate}
-  \item What went well while writing this deliverable? 
-  \item What pain points did you experience during this deliverable, and how
-    did you resolve them?
-  \item Which of your design decisions stemmed from speaking to your client(s)
-  or a proxy (e.g. your peers, stakeholders, potential users)? For those that
-  were not, why, and where did they come from?
-  \item While creating the design doc, what parts of your other documents (e.g.
-  requirements, hazard analysis, etc), it any, needed to be changed, and why?
-  \item What are the limitations of your solution?  Put another way, given
-  unlimited resources, what could you do to make the project better? (LO\_ProbSolutions)
-  \item Give a brief overview of other design solutions you considered.  What
-  are the benefits and tradeoffs of those other designs compared with the chosen
-  design?  From all the potential options, why did you select the documented design?
-  (LO\_Explores)
-  \item (After you have implemented another team's module, which means this
-  isn't filled in until after the original deadline). What did you learn by
-  implementing another team's module? Were all the details you needed in the
-  documentation, or did you need to make assumptions, or ask the other team
-  questions?  If your team also had another team implement one of your modules,
-  what was this experience like?  Are there things in your documentation you
-  could have changed to make the process go more smoothly for when an
-  ``outsider'' completes some of the implementation?
-\end{enumerate}
-
-
 \end{document}
-% rebuild
