@@ -54,7 +54,7 @@ jobs:
         run: |
           sudo apt-get update
           #sudo apt-get install -y texlive-full #if needed, but very large
-          sudo apt-get install -y --fix-missing texlive-latex-extra texlive-science #texlive-xetex texlive-luatex texlive-bibtex-extra 
+          sudo apt-get install -y --fix-missing texlive-latex-extra texlive-science texlive-fonts-extra texlive-bibtex-extra
       - name: Compile LaTeX
         run: |
           PDF_CACHE_DIR="$GITHUB_WORKSPACE/build-pdf"
@@ -65,10 +65,12 @@ jobs:
           # Bootstrap: full build if cache is empty
           if [ -z "${CHANGED_FILES}" ] && [ -z "$(ls -A "$PDF_CACHE_DIR" 2>/dev/null)" ]; then
             echo "No cached PDFs found; building all documents"
-            CHANGED_FILES=$(find docs -name "*.tex")
+            CHANGED_FILES=$(find docs -name "*.tex" -not -path "*/Extras/*" -not -path "*/Checklists/*" -not -path "*/projMngmnt/*")
           fi
 
           for file in $CHANGED_FILES; do
+            # Skip non-project docs
+            echo "$file" | grep -qE '(Extras|Checklists|projMngmnt)/' && continue
             # Build using existing Makefile rules
             make -B "${file%.tex}.pdf"
               
