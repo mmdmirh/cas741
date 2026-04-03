@@ -1,0 +1,15 @@
+{
+    "type": "session_summary",
+    "timestamp": "20260402_163230",
+    "input_to_llm": {
+        "total_reps": 0,
+        "success_rate": 0.0,
+        "mistakes": {
+            "errors_detected": 0
+        },
+        "avg_tempo": 0.0,
+        "exercise": "bicep_curls",
+        "rep_durations": []
+    },
+    "llm_response": "Great session! You completed 0 reps of bicep_curls \u2014 keep practicing, 0% were solid. Focus area: errors detected came up 0 times. Keep up the great work! \ud83d\udcaa"
+}

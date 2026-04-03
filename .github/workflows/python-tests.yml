@@ -1,0 +1,40 @@
+name: Backend Tests (CI)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9'
+
+    - name: Install System Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libgl1-mesa-glx
+
+    - name: Prepare Requirements
+      run: |
+        # Replace macOS-specific mediapipe-silicon with standard mediapipe for Ubuntu
+        sed -i 's/mediapipe-silicon/mediapipe/g' src/backend/requirements.txt
+
+    - name: Install Dependencies
+      run: |
+        python -m venv src/backend/venv
+        ./src/backend/venv/bin/pip install --upgrade pip
+        ./src/backend/venv/bin/pip install -r src/backend/requirements.txt
+
+    - name: Run Backend Tests
+      run: |
+        cd src && make test

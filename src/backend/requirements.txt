@@ -1,4 +1,4 @@
-aiortc
+daphne
 fastapi
 uvicorn[standard]
 uvloop
@@ -6,11 +6,8 @@ mediapipe-silicon
 opencv-python
 numpy
 pykalman
-pykalman
 python-multipart
 scipy
-uvicorn
-uvloop
 requests
 cerebras-cloud-sdk
 django

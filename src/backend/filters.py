@@ -1,7 +1,33 @@
 import os
 import numpy as np
 from scipy.signal import savgol_filter
-from pykalman import KalmanFilter
+
+
+class SimpleKalmanFilter:
+    """A lightweight, 1D Kalman filter for smooth joint movement."""
+    def __init__(self, process_variance=0.01, measurement_variance=0.1):
+        self.process_variance = process_variance
+        self.measurement_variance = measurement_variance
+        self.estimate = 0.0
+        self.error_covariance = 1.0
+        self.is_initialized = False
+
+    def update(self, measurement):
+        if not self.is_initialized:
+            self.estimate = measurement
+            self.is_initialized = True
+            return self.estimate
+
+        # Prediction phase
+        prediction = self.estimate
+        prediction_error_covariance = self.error_covariance + self.process_variance
+
+        # Update phase
+        kalman_gain = prediction_error_covariance / (prediction_error_covariance + self.measurement_variance)
+        self.estimate = prediction + kalman_gain * (measurement - prediction)
+        self.error_covariance = (1 - kalman_gain) * prediction_error_covariance
+
+        return self.estimate
 
 
 class KalmanLandmarkSmoother:
@@ -10,29 +36,10 @@ class KalmanLandmarkSmoother:
     def __init__(self):
         # When FIT3D_RAW_LANDMARKS=1, bypass smoothing and return raw landmarks.
         self.disabled = os.getenv("FIT3D_RAW_LANDMARKS", "0") == "1"
-        self.kalman_filters = {}
-
-    def _get_filter(self, landmark_index):
-        if landmark_index not in self.kalman_filters:
-            # State: [x, y, dx, dy] (position and velocity)
-            # We observe only position (x, y)
-            transition_matrix = [[1, 0, 1, 0],  # x = x + dx
-                               [0, 1, 0, 1],  # y = y + dy
-                               [0, 0, 1, 0],  # dx = dx
-                               [0, 0, 0, 1]]  # dy = dy
-
-            observation_matrix = [[1, 0, 0, 0],
-                                  [0, 1, 0, 0]]
-
-            self.kalman_filters[landmark_index] = KalmanFilter(
-                transition_matrices=transition_matrix,
-                observation_matrices=observation_matrix,
-                initial_state_mean=[0, 0, 0, 0],
-                initial_state_covariance=np.eye(4) * 0.1,
-                observation_covariance=np.eye(2) * 0.1,
-                transition_covariance=np.eye(4) * 0.01
-            )
-        return self.kalman_filters[landmark_index]
+        # Each landmark (x, y, z) gets its own filter
+        self.filters_x = {}
+        self.filters_y = {}
+        self.filters_z = {}
 
     def smooth(self, landmarks):
         """Smooths a list of landmarks from a single frame."""
@@ -45,27 +52,15 @@ class KalmanLandmarkSmoother:
 
         smoothed_landmarks = []
         for i, lm in enumerate(landmarks):
-            kf = self._get_filter(i)
+            if i not in self.filters_x:
+                self.filters_x[i] = SimpleKalmanFilter()
+                self.filters_y[i] = SimpleKalmanFilter()
+                self.filters_z[i] = SimpleKalmanFilter()
 
-            # Get the current state mean and covariance
-            if i in self.kalman_filters and hasattr(kf, 'kf_mean'):
-                current_mean = kf.kf_mean
-                current_cov = kf.kf_cov
-            else:
-                # Initialize at the first observed position
-                current_mean = [lm.x, lm.y, 0, 0]
-                current_cov = np.eye(4) * 0.1
-
-            # Apply the filter
-            new_mean, new_cov = kf.filter_update(
-                current_mean,
-                current_cov,
-                observation=np.array([lm.x, lm.y])
-            )
-
-            # Store the updated state for the next iteration
-            kf.kf_mean = new_mean
-            kf.kf_cov = new_cov
+            # Smooth each coordinate independently
+            sx = self.filters_x[i].update(lm.x)
+            sy = self.filters_y[i].update(lm.y)
+            sz = self.filters_z[i].update(lm.z)
 
             # Create a new landmark object with the smoothed position
             class SmoothedLandmark:
@@ -75,7 +70,7 @@ class KalmanLandmarkSmoother:
                     self.z = z
                     self.visibility = visibility
 
-            smoothed_landmarks.append(SmoothedLandmark(new_mean[0], new_mean[1], lm.z, lm.visibility))
+            smoothed_landmarks.append(SmoothedLandmark(sx, sy, sz, lm.visibility))
 
         return smoothed_landmarks
 

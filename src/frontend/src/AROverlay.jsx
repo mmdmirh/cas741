@@ -58,6 +58,10 @@ export default function AROverlay({
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
 
+    // Mirror x to match the CSS scaleX(-1) on the video (selfie mode)
+    const mx = (lm) => (1 - lm.x) * canvas.width;
+    const my = (lm) => lm.y * canvas.height;
+
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -69,8 +73,8 @@ export default function AROverlay({
       const endLm = landmarks[end];
       if (startLm && endLm && startLm.visibility > VISIBILITY_THRESHOLD && endLm.visibility > VISIBILITY_THRESHOLD) {
         ctx.beginPath();
-        ctx.moveTo(startLm.x * canvas.width, startLm.y * canvas.height);
-        ctx.lineTo(endLm.x * canvas.width, endLm.y * canvas.height);
+        ctx.moveTo(mx(startLm), my(startLm));
+        ctx.lineTo(mx(endLm), my(endLm));
         ctx.stroke();
       }
     });
@@ -79,8 +83,8 @@ export default function AROverlay({
     landmarks.forEach((lm, index) => {
       if (lm.visibility < VISIBILITY_THRESHOLD) return;
 
-      const x = lm.x * canvas.width;
-      const y = lm.y * canvas.height;
+      const x = mx(lm);
+      const y = my(lm);
 
       // Check if this landmark has feedback
       const hasError = feedbackLandmarks.includes(index);
@@ -99,25 +103,32 @@ export default function AROverlay({
       const lm = landmarks[centerIdx];
       if (!lm || lm.visibility < VISIBILITY_THRESHOLD) return;
 
-      const x = lm.x * canvas.width;
-      const y = lm.y * canvas.height;
-      const radius = 40;
+      const x = mx(lm);
+      const y = my(lm);
 
-      // Determine if angle is within acceptable range (±15 degrees)
       const isCorrect = Math.abs(angle - targetAngle) < 15;
       const color = isCorrect ? '#10b981' : '#ef4444';
+      const text = `${Math.round(angle)}°`;
 
-      // Draw angle arc
+      // Draw badge background
+      ctx.font = 'bold 16px Inter, Arial';
+      const textWidth = ctx.measureText(text).width;
+      const padX = 8, padY = 4, badgeH = 24;
+      const bx = x - (textWidth + padX * 2) / 2;
+      const by = y - 30 - badgeH;
+
+      ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.arc(x, y, radius, 0, (angle / 180) * Math.PI);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 3;
-      ctx.stroke();
+      ctx.roundRect(bx, by, textWidth + padX * 2, badgeH, 6);
+      ctx.fill();
 
-      // Draw label
+      // Draw text
       ctx.fillStyle = 'white';
-      ctx.font = 'bold 14px Arial';
-      ctx.fillText(`${Math.round(angle)}°`, x + radius + 5, y);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, x, by + badgeH / 2);
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
     };
 
     // Exercise-specific angle visualization
@@ -132,6 +143,12 @@ export default function AROverlay({
     }
 
     // Draw directional arrows for correction guidance (using structured arrow data)
+    // Mirror left/right directions since video is flipped
+    const mirrorDirection = (dir) => {
+      const map = { left: 'right', right: 'left', up_left: 'up_right', up_right: 'up_left', down_left: 'down_right', down_right: 'down_left' };
+      return map[dir] || dir;
+    };
+
     const drawArrow = (x, y, direction, color, size = 40) => {
       const directions = {
         up: { dx: 0, dy: -size },
@@ -184,13 +201,14 @@ export default function AROverlay({
       const lm = landmarks[arrow.joint_idx];
       if (!lm || lm.visibility < VISIBILITY_THRESHOLD) return;
 
-      const x = lm.x * canvas.width;
-      const y = lm.y * canvas.height;
+      const x = mx(lm);
+      const y = my(lm);
 
-      drawArrow(x, y, arrow.direction, arrow.color || '#facc15', 45);
+      drawArrow(x, y, mirrorDirection(arrow.direction), arrow.color || '#facc15', 45);
     });
 
   }, [landmarks, feedbackLandmarks, arrowFeedback, selectedExercise, targetAngles, currentAngles, backendKey]);
+
 
   return (
     <canvas
