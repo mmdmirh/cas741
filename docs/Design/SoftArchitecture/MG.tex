@@ -158,10 +158,11 @@ change.
 
 \begin{description}
 \item[\refstepcounter{acnum} \actheacnum \label{acHardware}:] The specific
-  hardware on which the software is running.
-\item[\refstepcounter{acnum} \actheacnum \label{acInput}:] The format of the
-  initial input data.
-\item ...
+  hardware on which the software is running (CPU/GPU vs. NPU).
+\item[\refstepcounter{acnum} \actheacnum \label{acMLModel}:] The specific machine learning model used for pose estimation (MediaPipe, MoveNet, HRNet).
+\item[\refstepcounter{acnum} \actheacnum \label{acExercise}:] The logic and thresholds for different exercise types (Squats, Bicep Curls).
+\item[\refstepcounter{acnum} \actheacnum \label{acSmoothing}:] The algorithm used for signal noise reduction (Kalman Filter vs. Savitzky-Golay).
+\item[\refstepcounter{acnum} \actheacnum \label{acInputFormat}:] The format of the initial video data (Base64 vs. Binary Buffers).
 \end{description}
 
 \wss{Anticipated changes relate to changes that would be made in requirements,
@@ -191,8 +192,14 @@ below, which are leaves in the hierarchy tree, are the modules that will
 actually be implemented.
 
 \begin{description}
-\item [\refstepcounter{mnum} \mthemnum \label{mHH}:] Hardware-Hiding Module
-\item ...
+\item [\refstepcounter{mnum} \mthemnum \label{m1}:] Video Input Module
+\item [\refstepcounter{mnum} \mthemnum \label{m2}:] Display Output Module
+\item [\refstepcounter{mnum} \mthemnum \label{m3}:] Video Formatting Module
+\item [\refstepcounter{mnum} \mthemnum \label{m4}:] Pose Tracking Module
+\item [\refstepcounter{mnum} \mthemnum \label{m5}:] Kinematic Engine Module
+\item [\refstepcounter{mnum} \mthemnum \label{m6}:] Exercise State Module
+\item [\refstepcounter{mnum} \mthemnum \label{m7}:] UI Rendering Module
+\item [\refstepcounter{mnum} \mthemnum \label{m8}:] Signal Smoothing Module
 \end{description}
 
 
@@ -203,22 +210,18 @@ actually be implemented.
 \textbf{Level 1} & \textbf{Level 2}\\
 \midrule
 
-{Hardware-Hiding Module} & ~ \\
+\multirow{1}{0.3\textwidth}{Hardware-Hiding} & \mref{m1}\\
 \midrule
 
-\multirow{7}{0.3\textwidth}{Behaviour-Hiding Module} & ?\\
-& ?\\
-& ?\\
-& ?\\
-& ?\\
-& ?\\
-& ?\\ 
-& ?\\
+\multirow{4}{0.3\textwidth}{Behaviour-Hiding} & \mref{m2}\\
+& \mref{m3}\\
+& \mref{m6}\\
+& \mref{m7}\\
 \midrule
 
-\multirow{3}{0.3\textwidth}{Software Decision Module} & {?}\\
-& ?\\
-& ?\\
+\multirow{3}{0.3\textwidth}{Software Decision} & \mref{m4}\\
+& \mref{m5}\\
+& \mref{m8}\\
 \bottomrule
 
 \end{tabular}
@@ -255,42 +258,40 @@ Only the leaf modules in the hierarchy have to be implemented. If a dash
 (\emph{--}) is shown, this means that the module is not a leaf and will not have
 to be implemented.
 
-\subsection{Hardware Hiding Modules (\mref{mHH})}
-
+\subsubsection{Video Input Module (\mref{m1})}
 \begin{description}
-\item[Secrets:]The data structure and algorithm used to implement the virtual
-  hardware.
-\item[Services:]Serves as a virtual hardware used by the rest of the
-  system. This module provides the interface between the hardware and the
-  software. So, the system can use it to display outputs or to accept inputs.
-\item[Implemented By:] OS
+\item[Secrets:] The data structure and implementation used to capture raw video frames from the webcam.
+\item[Services:] Provides a stream of image data to the system.
+\item[Implemented By:] Browser/OS
 \end{description}
 
-\subsection{Behaviour-Hiding Module}
-
+\subsubsection{Display Output Module (\mref{m2})}
 \begin{description}
-\item[Secrets:]The contents of the required behaviours.
-\item[Services:]Includes programs that provide externally visible behaviour of
-  the system as specified in the software requirements specification (SRS)
-  documents. This module serves as a communication layer between the
-  hardware-hiding module and the software decision module. The programs in this
-  module will need to change if there are changes in the SRS.
-\item[Implemented By:] --
+\item[Secrets:] The logic for rendering the AR skeleton and badge overlays on the screen.
+\item[Services:] Displays the processed video with visual feedback to the user.
+\item[Implemented By:] FitCoachAR
 \end{description}
 
-\subsubsection{Input Format Module (\mref{mInput})}
-
+\subsubsection{Video Formatting Module (\mref{m3})}
 \begin{description}
-\item[Secrets:]The format and structure of the input data.
-\item[Services:]Converts the input data into the data structure used by the
-  input parameters module.
-\item[Implemented By:] [Your Program Name Here]
-\item[Type of Module:] [Record, Library, Abstract Object, or Abstract Data Type]
-  [Information to include for leaf modules in the decomposition by secrets tree.]
+\item[Secrets:] The encoding and decoding algorithms used for network transmission.
+\item[Services:] Converts raw image frames into transportable formats (e.g., Base64/JPEG).
+\item[Implemented By:] FitCoachAR
 \end{description}
 
-\subsubsection{Etc.}
+\subsubsection{Exercise State Module (\mref{m6})}
+\begin{description}
+\item[Secrets:] The state machine logic and repetition counting thresholds.
+\item[Services:] Tracks exercise progress and increments repetition count.
+\item[Implemented By:] FitCoachAR
+\end{description}
 
+\subsubsection{UI Rendering Module (\mref{m7})}
+\begin{description}
+\item[Secrets:] The JSON schema and communication protocols for real-time feedback.
+\item[Services:] Provides textual and numerical feedback (rep count, stability) to the user interface.
+\item[Implemented By:] FitCoachAR
+\end{description}
 
 \subsection{Software Decision Module}
 
@@ -298,14 +299,31 @@ to be implemented.
 \item[Secrets:] The design decision based on mathematical theorems, physical
   facts, or programming considerations. The secrets of this module are
   \emph{not} described in the SRS.
-\item[Services:] Includes data structure and algorithms used in the system that
+\item[Services:] Includes data structures and algorithms used in the system that
   do not provide direct interaction with the user. 
-  % Changes in these modules are more likely to be motivated by a desire to
-  % improve performance than by externally imposed changes.
 \item[Implemented By:] --
 \end{description}
 
-\subsubsection{Etc.}
+\subsubsection{Pose Tracking Module (\mref{m4})}
+\begin{description}
+\item[Secrets:] The specific machine learning models and inferencing logic for landmark extraction.
+\item[Services:] Extracts 3D/2D coordinates of human joints from video frames.
+\item[Implemented By:] MediaPipe (Library)
+\end{description}
+
+\subsubsection{Kinematic Engine Module (\mref{m5})}
+\begin{description}
+\item[Secrets:] The mathematical formulas for joint angle computation and coordinate frame transforms.
+\item[Services:] Computes biomechanical metrics like joint flexion and limb alignment.
+\item[Implemented By:] FitCoachAR
+\end{description}
+
+\subsubsection{Signal Smoothing Module (\mref{m8})}
+\begin{description}
+\item[Secrets:] The filtering algorithms used to remove noise from landmark coordinates.
+\item[Services:] Provides a stable, non-jittery signal for rep counting and display.
+\item[Implemented By:] FitCoachAR
+\end{description}
 
 \section{Traceability Matrix} \label{SecTM}
 
@@ -320,17 +338,11 @@ requirements and between the modules and the anticipated changes.
 \toprule
 \textbf{Req.} & \textbf{Modules}\\
 \midrule
-R1 & \mref{mHH}, \mref{mInput}, \mref{mParams}, \mref{mControl}\\
-R2 & \mref{mInput}, \mref{mParams}\\
-R3 & \mref{mVerify}\\
-R4 & \mref{mOutput}, \mref{mControl}\\
-R5 & \mref{mOutput}, \mref{mODEs}, \mref{mControl}, \mref{mSeqDS}, \mref{mSolver}, \mref{mPlot}\\
-R6 & \mref{mOutput}, \mref{mODEs}, \mref{mControl}, \mref{mSeqDS}, \mref{mSolver}, \mref{mPlot}\\
-R7 & \mref{mOutput}, \mref{mEnergy}, \mref{mControl}, \mref{mSeqDS}, \mref{mPlot}\\
-R8 & \mref{mOutput}, \mref{mEnergy}, \mref{mControl}, \mref{mSeqDS}, \mref{mPlot}\\
-R9 & \mref{mVerifyOut}\\
-R10 & \mref{mOutput}, \mref{mODEs}, \mref{mControl}\\
-R11 & \mref{mOutput}, \mref{mODEs}, \mref{mEnergy}, \mref{mControl}\\
+R1 & \mref{m1}, \mref{m3}, \mref{m4}, \mref{m7}\\
+R2 & \mref{m4}, \mref{m5}\\
+R3 & \mref{m6}, \mref{m7}\\
+R4 & \mref{m2}, \mref{m7}\\
+R5 & \mref{m8}\\
 \bottomrule
 \end{tabular}
 \caption{Trace Between Requirements and Modules}
@@ -343,18 +355,11 @@ R11 & \mref{mOutput}, \mref{mODEs}, \mref{mEnergy}, \mref{mControl}\\
 \toprule
 \textbf{AC} & \textbf{Modules}\\
 \midrule
-\acref{acHardware} & \mref{mHH}\\
-\acref{acInput} & \mref{mInput}\\
-\acref{acParams} & \mref{mParams}\\
-\acref{acVerify} & \mref{mVerify}\\
-\acref{acOutput} & \mref{mOutput}\\
-\acref{acVerifyOut} & \mref{mVerifyOut}\\
-\acref{acODEs} & \mref{mODEs}\\
-\acref{acEnergy} & \mref{mEnergy}\\
-\acref{acControl} & \mref{mControl}\\
-\acref{acSeqDS} & \mref{mSeqDS}\\
-\acref{acSolver} & \mref{mSolver}\\
-\acref{acPlot} & \mref{mPlot}\\
+\acref{acHardware} & \mref{m1}\\
+\acref{acMLModel} & \mref{m4}\\
+\acref{acExercise} & \mref{m6}, \mref{m5}\\
+\acref{acSmoothing} & \mref{m8}\\
+\acref{acInputFormat} & \mref{m3}\\
 \bottomrule
 \end{tabular}
 \caption{Trace Between Anticipated Changes and Modules}
