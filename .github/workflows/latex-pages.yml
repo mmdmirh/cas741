@@ -69,7 +69,8 @@ jobs:
           fi
 
           for file in $CHANGED_FILES; do
-            # Skip non-project docs
+            # Skip deleted or non-project files
+            [ ! -f "$file" ] && echo "Skipping deleted file: $file" && continue
             echo "$file" | grep -qE '(Extras|Checklists|projMngmnt)/' && continue
             # Build using existing Makefile rules
             make -B "${file%.tex}.pdf"
