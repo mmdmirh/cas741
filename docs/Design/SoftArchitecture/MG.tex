@@ -74,7 +74,6 @@ This section records information for easy reference.
   SRS & Software Requirements Specification\\
   \progname & Explanation of program name\\
   UC & Unlikely Change \\
-  \wss{etc.} & \wss{...}\\
   \bottomrule
 \end{tabular}\\
 
@@ -165,9 +164,6 @@ change.
 \item[\refstepcounter{acnum} \actheacnum \label{acInputFormat}:] The format of the initial video data (Base64 vs. Binary Buffers).
 \end{description}
 
-\wss{Anticipated changes relate to changes that would be made in requirements,
-design or implementation choices.  They are not related to changes that are made
-at run-time, like the values of parameters.}
 
 \subsection{Unlikely Changes} \label{SecUchange}
 
@@ -179,9 +175,11 @@ will potentially need to be modified. Hence, it is not intended that these
 decisions will be changed.
 
 \begin{description}
-\item[\refstepcounter{ucnum} \uctheucnum \label{ucIO}:] Input/Output devices
-  (Input: File and/or Keyboard, Output: File, Memory, and/or Screen).
-\item ...
+\item[\refstepcounter{ucnum} \uctheucnum \label{ucIO}:] The mathematical basis
+  for biomechanical analysis (dot-product joint angle computation) is assumed to be
+  a fixed, physically grounded approach that will not change.
+\item[\refstepcounter{ucnum} \uctheucnum \label{ucLandmarks}:] The number of
+  tracked body landmarks (33 MediaPipe Pose landmarks) is treated as fixed.
 \end{description}
 
 \section{Module Hierarchy} \label{SecMH}
@@ -235,12 +233,11 @@ The design of the system is intended to satisfy the requirements developed in
 the SRS. In this stage, the system is decomposed into modules. The connection
 between requirements and modules is listed in Table~\ref{TblRT}.
 
-\wss{The intention of this section is to document decisions that are made
-  ``between'' the requirements and the design.  To satisfy some requirements,
-  design decisions need to be made.  Rather than make these decisions implicit,
-  they are explicitly recorded here.  For instance, if a program has security
-  requirements, a specific design decision may be made to satisfy those
-  requirements with a password.}
+Each module's design decision is driven by a corresponding SRS requirement.
+For example, the decision to use a Kalman filter (M8) was made to satisfy
+the stability requirement for real-time angle tracking. The decision to use
+MediaPipe (M4) was made to satisfy the accuracy requirements without
+requiring specialized hardware (e.g., depth cameras).
 
 \section{Module Decomposition} \label{SecMD}
 
@@ -373,52 +370,50 @@ provided. \citet{Parnas1978} said of two programs A and B that A {\em uses} B if
 correct execution of B may be necessary for A to complete the task described in
 its specification. That is, A {\em uses} B if there exist situations in which
 the correct functioning of A depends upon the availability of a correct
-implementation of B.  Figure \ref{FigUH} illustrates the use relation between
-the modules. It can be seen that the graph is a directed acyclic graph
-(DAG). Each level of the hierarchy offers a testable and usable subset of the
-system, and modules in the higher level of the hierarchy are essentially simpler
-because they use modules from the lower levels.
+implementation of B. The use relation corresponds to Python \texttt{import}
+statements in the implemented code.
 
-\wss{The uses relation is not a data flow diagram.  In the code there will often
-be an import statement in module A when it directly uses module B.  Module B
-provides the services that module A needs.  The code for module A needs to be
-able to see these services (hence the import statement).  Since the uses
-relation is transitive, there is a use relation without an import, but the
-arrows in the diagram typically correspond to the presence of import statement.}
-
-\wss{If module A uses module B, the arrow is directed from A to B.}
-
-\begin{figure}[H]
-\centering
-%\includegraphics[width=0.7\textwidth]{UsesHierarchy.png}
-\caption{Use hierarchy among modules}
-\label{FigUH}
-\end{figure}
+The uses hierarchy is a directed acyclic graph (DAG) as illustrated below:
+\begin{itemize}
+  \item M7 (UI Rendering) \emph{uses} M6 (Exercise State), M2 (Display Output)
+  \item M6 (Exercise State) \emph{uses} M5 (Kinematic Engine), M8 (Signal Smoothing)
+  \item M5 (Kinematic Engine) \emph{uses} M4 (Pose Tracking)
+  \item M4 (Pose Tracking) \emph{uses} M3 (Video Formatting)
+  \item M3 (Video Formatting) \emph{uses} M1 (Video Input)
+\end{itemize}
 
 %\section*{References}
 
 \section{User Interfaces}
 
-\wss{Design of user interface for software and hardware.  Attach an appendix if
-needed. Drawings, Sketches, Figma}
+FitCoachAR provides two user-facing interfaces:
 
-\section{Design of Communication Protocols}
+\begin{itemize}
+  \item \textbf{Webcam Feed with AR Overlay (M2: Display Output)}: The primary
+  interface is a live video feed rendered in the browser. The system draws a
+  skeleton overlay on the user's body using detected landmarks, and displays
+  real-time feedback badges showing the current repetition count and form
+  quality scores (e.g., knee stability index, torso lean angle).
 
-\wss{If there is communication between hardware and software, it may be necessary 
-to explain the design of the communication protocol.  This section should be filled 
-in with NA if it is not appropriate for a given project.}
+  \item \textbf{Exercise Control Panel (M7: UI Rendering)}: A sidebar panel
+  allows the user to select an exercise type (Squat or Bicep Curl), start and
+  stop a session, and view a summary of completed repetitions. The panel updates
+  in real-time via a WebSocket connection to the backend.
+\end{itemize}
 
 \section{Database Design}
 
-\wss{If a database is a significant component of the project, the database
-design should be summarized here.  This section should be filled in with NA if
-it is not appropriate for a given project.}
+FitCoachAR does not use a persistent database in the current implementation.
+All session state (rep count, current phase, smoothed angles) is maintained
+in memory on the backend for the duration of a session and discarded afterward.
+This is an intentional design decision to simplify the system and avoid
+privacy concerns with storing biometric workout data.
 
 \section{Timeline}
 
-\wss{Schedule of tasks and who is responsible}
-
-\wss{You can point to GitHub if this information is included there}
+Implementation was completed as part of the CAS 741 course project.
+The development schedule and task assignments are tracked via GitHub Issues
+and milestones at \url{https://github.com/mmdmirh/cas741}.
 
 \bibliographystyle {plainnat}
 \bibliography{../../../refs/References}
