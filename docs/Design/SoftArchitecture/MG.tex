@@ -16,6 +16,9 @@
     urlcolor=blue
 }
 
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, shadows, trees}
+
 \input{../../Comments.text}
 \input{../../Common.text}
 
@@ -46,8 +49,9 @@
 \begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
 \toprule {\bf Date} & {\bf Version} & {\bf Notes}\\
 \midrule
-Date 1 & 1.0 & Notes\\
-Date 2 & 1.1 & Notes\\
+2026-03-23 & 1.0 & Initial MG/MIS presentation draft\\
+2026-04-02 & 1.1 & Formalized 8-module hierarchy\\
+2026-04-07 & 1.2 & Reviewer's edit (Yibing Mei and Dr. Smith)\\
 \bottomrule
 \end{tabularx}
 
@@ -162,6 +166,8 @@ change.
 \item[\refstepcounter{acnum} \actheacnum \label{acExercise}:] The logic and thresholds for different exercise types (Squats, Bicep Curls).
 \item[\refstepcounter{acnum} \actheacnum \label{acSmoothing}:] The algorithm used for signal noise reduction (Kalman Filter vs. Savitzky-Golay).
 \item[\refstepcounter{acnum} \actheacnum \label{acInputFormat}:] The format of the initial video data (Base64 vs. Binary Buffers).
+\item[\refstepcounter{acnum} \actheacnum \label{acFeedbackFreq}:] The frequency and refresh rate of the real-time feedback displayed to the user.
+\item[\refstepcounter{acnum} \actheacnum \label{acUIBranding}:] The visual styling and branding of the user interface (colors, fonts, badge icons).
 \end{description}
 
 
@@ -200,6 +206,13 @@ actually be implemented.
 \item [\refstepcounter{mnum} \mthemnum \label{m8}:] Signal Smoothing Module
 \end{description}
 
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.8\textwidth]{/Users/mohamad/Desktop/git/cas741/docs/Presentations/D0_ProofOfConceptDemo/architecture_diagram.png}
+  \caption{System Architecture Overview}
+  \label{FigArch}
+\end{figure}
+
 
 \begin{table}[h!]
 \centering
@@ -211,15 +224,16 @@ actually be implemented.
 \multirow{1}{0.3\textwidth}{Hardware-Hiding} & \mref{m1}\\
 \midrule
 
-\multirow{4}{0.3\textwidth}{Behaviour-Hiding} & \mref{m2}\\
+\multirow{7}{0.3\textwidth}{Behaviour-Hiding} & \mref{m2}\\
 & \mref{m3}\\
+& \mref{m4}\\
+& \mref{m5}\\
 & \mref{m6}\\
 & \mref{m7}\\
+& \mref{m8}\\
 \midrule
 
-\multirow{3}{0.3\textwidth}{Software Decision} & \mref{m4}\\
-& \mref{m5}\\
-& \mref{m8}\\
+\multirow{1}{0.3\textwidth}{Software Decision} & -- \\
 \bottomrule
 
 \end{tabular}
@@ -266,7 +280,7 @@ to be implemented.
 \begin{description}
 \item[Secrets:] The logic for rendering the AR skeleton and badge overlays on the screen.
 \item[Services:] Displays the processed video with visual feedback to the user.
-\item[Implemented By:] FitCoachAR
+\item[Implemented By:] Browser/three.js APIs
 \end{description}
 
 \subsubsection{Video Formatting Module (\mref{m3})}
@@ -318,7 +332,7 @@ to be implemented.
 \subsubsection{Signal Smoothing Module (\mref{m8})}
 \begin{description}
 \item[Secrets:] The filtering algorithms used to remove noise from landmark coordinates.
-\item[Services:] Provides a stable, non-jittery signal for rep counting and display.
+\item[Services:] Provides a stable, non-jittery signal for downstream modules.
 \item[Implemented By:] FitCoachAR
 \end{description}
 
@@ -374,11 +388,44 @@ implementation of B. The use relation corresponds to Python \texttt{import}
 statements in the implemented code.
 
 The uses hierarchy is a directed acyclic graph (DAG) as illustrated below:
+The uses hierarchy is a directed acyclic graph (DAG) as illustrated in Figure \ref{FigDAG}:
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  node distance=1.5cm and 1cm,
+  box/.style={draw, rounded corners, minimum width=2.5cm, minimum height=1cm, align=center, fill=blue!5},
+  arrow/.style={-Stealth, thick}
+]
+  % Nodes
+  \node[box] (m7) {M7: UI Rendering};
+  \node[box] (m6) [below left=of m7] {M6: Exercise State};
+  \node[box] (m2) [below right=of m7] {M2: Display Output};
+  \node[box] (m5) [below=of m6] {M5: Kinematic Engine};
+  \node[box] (m4) [below=of m5] {M4: Pose Tracking};
+  \node[box] (m8) [right=of m4] {M8: Smoothing};
+  \node[box] (m3) [below=of m4] {M3: Formatting};
+  \node[box] (m1) [below=of m3] {M1: Video Input};
+
+  % Edges
+  \draw[arrow] (m7) -- (m6);
+  \draw[arrow] (m7) -- (m2);
+  \draw[arrow] (m6) -- (m5);
+  \draw[arrow] (m5) -- (m4);
+  \draw[arrow] (m4) -- (m8);
+  \draw[arrow] (m4) -- (m3);
+  \draw[arrow] (m3) -- (m1);
+
+\end{tikzpicture}
+\caption{Uses Hierarchy (DAG)}
+\label{FigDAG}
+\end{figure}
+
 \begin{itemize}
   \item M7 (UI Rendering) \emph{uses} M6 (Exercise State), M2 (Display Output)
-  \item M6 (Exercise State) \emph{uses} M5 (Kinematic Engine), M8 (Signal Smoothing)
+  \item M6 (Exercise State) \emph{uses} M5 (Kinematic Engine)
   \item M5 (Kinematic Engine) \emph{uses} M4 (Pose Tracking)
-  \item M4 (Pose Tracking) \emph{uses} M3 (Video Formatting)
+  \item M4 (Pose Tracking) \emph{uses} M8 (Signal Smoothing), M3 (Video Formatting)
   \item M3 (Video Formatting) \emph{uses} M1 (Video Input)
 \end{itemize}
 

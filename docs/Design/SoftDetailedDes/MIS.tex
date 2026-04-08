@@ -15,7 +15,7 @@
 \usepackage{siunitx}
 \usepackage{booktabs}
 \usepackage{multirow}
-\usepackage[section]{placeins}
+% \usepackage[section]{placeins}
 \usepackage{caption}
 \usepackage{fullpage}
 
@@ -54,6 +54,7 @@ urlcolor=cyan
 \midrule
 2026-03-23 & 1.0 & Initial MG/MIS presentation draft\\
 2026-04-02 & 1.1 & Full MIS formalization aligned with 8-module implementation\\
+2026-04-07 & 1.2 & Reviewer's edit (Yibing Mei and Dr. Smith)\\
 \bottomrule
 \end{tabularx}
 
@@ -77,7 +78,8 @@ $\mathbb{N}$ & Natural number \\
 Point2D & A tuple $(x, y) \in \mathbb{R}^2$ representing image coordinates \\
 Point3D & A tuple $(x, y, z) \in \mathbb{R}^3$ representing 3D coordinates \\
 JointID & An integer index identifying a MediaPipe pose landmark \\
-LandmarkList & A sequence of 33 Point3D landmarks \\
+LandmarkList & A sequence $L$ of 33 records, where each $L_i = \{x:\mathbb{R}, y:\mathbb{R}, z:\mathbb{R}, v:\mathbb{R}\}$ \\
+ExerciseEnum & \{SQUAT, BICEP\_CURL, UNKNOWN\} \\
 \bottomrule
 \end{tabular}
 
@@ -145,21 +147,111 @@ The following table is taken directly from the Module Guide document for this pr
 {Hardware-Hiding} & M1: Video Input Module \\
 \midrule
 
-\multirow{4}{0.3\textwidth}{Behaviour-Hiding} & M2: Display Output Module\\
+\multirow{7}{0.3\textwidth}{Behaviour-Hiding} & M2: Display Output Module\\
 & M3: Video Formatting Module\\
+& M4: Pose Tracking Module\\
+& M5: Kinematic Engine Module\\
 & M6: Exercise State Module\\
 & M7: UI Rendering Module\\
+& M8: Signal Smoothing Module\\
 \midrule
 
-\multirow{3}{0.3\textwidth}{Software Decision} & M4: Pose Tracking Module\\
-& M5: Kinematic Engine Module\\
-& M8: Signal Smoothing Module\\
+\multirow{1}{0.3\textwidth}{Software Decision} & -- \\
 \bottomrule
 
 \end{tabular}
 \caption{Module Hierarchy}
 \label{TblMH}
 \end{table}
+
+\newpage
+
+%-----------------------------------------------------------------------
+\section{MIS of M1: Video Input Module} \label{M1}
+%-----------------------------------------------------------------------
+
+\subsection{Module}
+Browser-native Video Capture API (e.g., \texttt{getUserMedia})
+
+\subsection{Uses}
+None.
+
+\subsection{Syntax}
+
+\subsubsection{Exported Access Programs}
+
+\begin{center}
+\begin{tabular}{p{3.5cm} p{4cm} p{3.5cm} p{2cm}}
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+\hline
+\texttt{get\_frame} & -- & frame: bytes & \texttt{CameraError}\\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Semantics}
+
+\subsubsection{State Variables}
+None.
+
+\subsubsection{Environment Variables}
+Input from the hardware webcam sensor.
+
+\subsubsection{Access Routine Semantics}
+
+\noindent \texttt{get\_frame()}:
+\begin{itemize}
+  \item output: The current image frame captured from the webcam, as a byte stream in JPEG/PNG format.
+  \item exception: \texttt{CameraError} if the device is unavailable or access is denied.
+\end{itemize}
+
+\newpage
+
+%-----------------------------------------------------------------------
+\section{MIS of M2: Display Output Module} \label{M2}
+%-----------------------------------------------------------------------
+
+\subsection{Module}
+Browser Canvas Rendering Module (\texttt{frontend/modules/m2\_display\_output.js})
+
+\subsection{Uses}
+None.
+
+\subsection{Syntax}
+
+\subsubsection{Exported Access Programs}
+
+\begin{center}
+\begin{tabular}{p{4.5cm} p{4.5cm} p{1.5cm} p{2cm}}
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+\hline
+\texttt{draw\_overlay} & landmarks: LandmarkList & -- & -- \\
+\texttt{display} & frame: bytes & -- & -- \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Semantics}
+
+\subsubsection{State Variables}
+None.
+
+\subsubsection{Environment Variables}
+The visual display monitor / browser viewport.
+
+\subsubsection{Access Routine Semantics}
+
+\noindent \texttt{draw\_overlay(landmarks)}:
+\begin{itemize}
+  \item output: Renders a connected skeleton on the AR canvas using the provided landmark coordinates.
+\end{itemize}
+
+\noindent \texttt{display(frame)}:
+\begin{itemize}
+  \item output: Renders the raw video frame as the background of the AR canvas.
+\end{itemize}
 
 \newpage
 
@@ -175,18 +267,15 @@ M1 (Video Input)
 
 \subsection{Syntax}
 
-\subsubsection{Exported Constants}
-None.
-
 \subsubsection{Exported Access Programs}
 
 \begin{center}
-\begin{tabular}{p{3.5cm} p{4cm} p{3cm} p{2cm}}
+\begin{tabular}{p{3.5cm} p{4cm} p{3.5cm} p{3cm}}
 \hline
 \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
 \hline
-\texttt{encode\_frame} & frame: bytes & encoded: str & \texttt{ValueError} \\
-\texttt{decode\_frame} & encoded: str & frame: bytes & \texttt{ValueError} \\
+\texttt{encode\_frame} & frame: bytes & encoded: str & \texttt{InvalidImageEx}\\
+\texttt{decode\_frame} & encoded: str & frame: bytes & \texttt{Base64Ex}\\
 \hline
 \end{tabular}
 \end{center}
@@ -194,10 +283,10 @@ None.
 \subsection{Semantics}
 
 \subsubsection{State Variables}
-None. (Stateless conversion module.)
+None.
 
 \subsubsection{Environment Variables}
-Raw JPEG/PNG image data from the webcam feed.
+None.
 
 \subsubsection{Assumptions}
 Input bytes represent a valid compressed image (JPEG or PNG).
@@ -207,13 +296,13 @@ Input bytes represent a valid compressed image (JPEG or PNG).
 \noindent \texttt{encode\_frame(frame)}:
 \begin{itemize}
   \item output: Base64-encoded UTF-8 string representation of the raw image bytes.
-  \item exception: \texttt{ValueError} if \texttt{frame} is empty or not valid image bytes.
+  \item exception: $exc := (\text{frame is empty} \Rightarrow \texttt{InvalidImageEx} \mid \text{True} \Rightarrow \text{None})$
 \end{itemize}
 
 \noindent \texttt{decode\_frame(encoded)}:
 \begin{itemize}
   \item output: Raw image bytes decoded from the Base64 string.
-  \item exception: \texttt{ValueError} if \texttt{encoded} is not valid Base64.
+  \item exception: $exc := (\text{encoded is not valid Base64} \Rightarrow \texttt{Base64Ex} \mid \text{True} \Rightarrow \text{None})$
 \end{itemize}
 
 \newpage
@@ -250,31 +339,30 @@ M3 (Video Formatting), M8 (Signal Smoothing)
 
 \subsubsection{State Variables}
 \begin{itemize}
-  \item \texttt{model}: Loaded ML inference model (MediaPipe Pose instance).
+  \item \texttt{model}: Loaded ML inference model instance.
 \end{itemize}
 
 \subsubsection{Environment Variables}
-\begin{itemize}
-  \item Webcam image frame (from M3).
-\end{itemize}
+None.
 
 \subsubsection{Assumptions}
 \begin{itemize}
   \item The input frame contains at most one person.
-  \item Lighting conditions meet minimum MediaPipe requirements.
+  \item Lighting conditions meet minimum hardware requirements.
 \end{itemize}
 
 \subsubsection{Access Routine Semantics}
 
 \noindent \texttt{detect(frame)}:
 \begin{itemize}
-  \item output: A sequence of 33 landmarks, each with $(x, y, z, \text{visibility})$ where $x, y, z \in [0.0, 1.0]$ normalized to image dimensions.
-  \item exception: \texttt{DetectionError} if the frame cannot be decoded or no person is detected.
+  \item input: raw bytes of a JPEG/PNG image.
+  \item output: A sequence $L$ of 33 records (LandmarkList).
+  \item exception: $exc := (\text{no person detected} \Rightarrow \texttt{DetectionError} \mid \text{True} \Rightarrow \text{None})$
 \end{itemize}
 
 \noindent \texttt{is\_visible(landmarks, id)}:
 \begin{itemize}
-  \item output: \texttt{True} iff \texttt{landmarks[id].visibility} $> 0.5$.
+  \item output: \texttt{True} iff \texttt{landmarks[id].v} $> 0.5$.
 \end{itemize}
 
 \newpage
@@ -297,12 +385,12 @@ None.
 \subsubsection{Exported Access Programs}
 
 \begin{center}
-\begin{tabular}{p{4cm} p{4.5cm} p{2.5cm} p{2.5cm}}
+\begin{tabular}{p{4cm} p{5.5cm} p{2cm} p{3cm}}
 \hline
 \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
 \hline
-\texttt{compute\_angle} & a, b, c: Point3D & $\mathbb{R}$ & \texttt{ValueError}\\
-\texttt{extract\_metrics} & landmarks: LandmarkList, exercise: str & dict & \texttt{KeyError}\\
+\texttt{compute\_angle} & a, b, c: Point3D & $\mathbb{R}$ & \texttt{CollinearEx}\\
+\texttt{extract\_metrics} & l: LandmarkList, e: ExerciseEnum & record & \texttt{TypeEx}\\
 \hline
 \end{tabular}
 \end{center}
@@ -328,17 +416,17 @@ None.
   \item output: The angle $\theta$ at joint $b$ formed by vectors $\overrightarrow{ba}$ and $\overrightarrow{bc}$, in degrees:
   $$\theta = \arccos\left(\frac{\overrightarrow{ba} \cdot \overrightarrow{bc}}{\|\overrightarrow{ba}\| \cdot \|\overrightarrow{bc}\|}\right) \times \frac{180}{\pi}$$
   where $\theta \in [0, 180]$.
-  \item exception: \texttt{ValueError} if any input vector has zero magnitude.
+  \item exception: $exc := (\|\overrightarrow{ba}\| = 0 \lor \|\overrightarrow{bc}\| = 0 \Rightarrow \texttt{CollinearEx} \mid \text{True} \Rightarrow \text{None})$
 \end{itemize}
 
-\noindent \texttt{extract\_metrics(landmarks, exercise)}:
+\noindent \texttt{extract\_metrics(l, e)}:
 \begin{itemize}
-  \item output: A dictionary \texttt{\{"primary": $\mathbb{R}$, "form": dict\}} where:
+  \item output: A record $r = \{primary: \mathbb{R}, form\_vals: \text{seq of } \mathbb{R} \}$ where:
   \begin{itemize}
-    \item \texttt{primary}: The main joint angle driving the rep count.
-    \item \texttt{form}: A dictionary of secondary form metrics (e.g., \texttt{knee\_valgus\_index}, \texttt{torso\_lean}).
+    \item $r.primary = (\text{e} = \text{SQUAT} \Rightarrow \texttt{compute\_angle}(\text{\_get\_coords}(l, 24), \text{\_get\_coords}(l, 26), \text{\_get\_coords}(l, 28)) \mid \text{True} \Rightarrow 0)$
+    \item $r.form\_vals$ is a sequence of angles computed using \texttt{compute\_angle} for secondary joints.
   \end{itemize}
-  \item exception: \texttt{KeyError} if \texttt{exercise} is not a recognized type.
+  \item exception: $exc := (\text{e} = \text{UNKNOWN} \Rightarrow \texttt{TypeEx} \mid \text{True} \Rightarrow \text{None})$
 \end{itemize}
 
 \subsubsection{Local Functions}
@@ -390,10 +478,10 @@ M5 (Kinematic Engine)
 
 \subsubsection{State Variables}
 \begin{itemize}
-  \item \texttt{current\_state}: str $\in$ \texttt{STATES}
-  \item \texttt{rep\_count}: $\mathbb{N}$
-  \item \texttt{angle\_min}: $\mathbb{R}$ (minimum angle observed in current rep)
-  \item \texttt{angle\_max}: $\mathbb{R}$ (maximum angle observed in current rep)
+  \item \texttt{current\_state}: str $\in$ \texttt{STATES} (initially \texttt{BOTTOM})
+  \item \texttt{rep\_count}: $\mathbb{N}$ (initially 0)
+  \item \texttt{angle\_min}: $\mathbb{R}$ (initially $\infty$)
+  \item \texttt{angle\_max}: $\mathbb{R}$ (initially $-\infty$)
 \end{itemize}
 
 \subsubsection{Environment Variables}
@@ -431,6 +519,55 @@ None.
 
 \newpage
 
+\newpage
+
+%-----------------------------------------------------------------------
+\section{MIS of M7: UI Rendering Module} \label{M7}
+%-----------------------------------------------------------------------
+
+\subsection{Module}
+FitCoachAR Web Interface Renderer (\texttt{frontend/modules/m7\_ui\_rendering.js})
+
+\subsection{Uses}
+M6 (Exercise State)
+
+\subsection{Syntax}
+
+\subsubsection{Exported Access Programs}
+
+\begin{center}
+\begin{tabular}{p{3.5cm} p{4.5cm} p{2cm} p{2cm}}
+\hline
+\textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
+\hline
+\texttt{update\_ui} & metrics: record & -- & -- \\
+\texttt{get\_json} & -- & str & -- \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Semantics}
+
+\subsubsection{State Variables}
+None.
+
+\subsubsection{Environment Variables}
+Browser Application State / DOM elements.
+
+\subsubsection{Access Routine Semantics}
+
+\noindent \texttt{update\_ui(metrics)}:
+\begin{itemize}
+  \item output: Updates the rep count and stability badges in the sidebar using values from \texttt{metrics}.
+\end{itemize}
+
+\noindent \texttt{get\_json()}:
+\begin{itemize}
+  \item output: A JSON-encoded string representation of the current session metrics for transmission.
+\end{itemize}
+
+\newpage
+
 %-----------------------------------------------------------------------
 \section{MIS of M8: Signal Smoothing Module} \label{M8}
 %-----------------------------------------------------------------------
@@ -443,18 +580,15 @@ M4 (Pose Tracking)
 
 \subsection{Syntax}
 
-\subsubsection{Exported Constants}
-None.
-
 \subsubsection{Exported Access Programs}
 
 \begin{center}
-\begin{tabular}{p{3.5cm} p{4.5cm} p{3cm} p{2cm}}
+\begin{tabular}{p{3.5cm} p{4.5cm} p{3.5cm} p{2cm}}
 \hline
 \textbf{Name} & \textbf{In} & \textbf{Out} & \textbf{Exceptions} \\
 \hline
 \texttt{smooth} & measurement: $\mathbb{R}$ & estimate: $\mathbb{R}$ & - \\
-\texttt{smooth\_landmarks} & landmarks: LandmarkList & LandmarkList & - \\
+\texttt{smooth\_landmarks} & landmarks: LandmarkList & LandmarkList ($R^{33 \times 3}$) & - \\
 \hline
 \end{tabular}
 \end{center}
@@ -463,10 +597,9 @@ None.
 
 \subsubsection{State Variables}
 \begin{itemize}
-  \item \texttt{x\_est}: $\mathbb{R}$ --- current state estimate
-  \item \texttt{P}: $\mathbb{R}$ --- estimation error covariance
-  \item \texttt{Q}: $\mathbb{R}$ --- process noise covariance
-  \item \texttt{R}: $\mathbb{R}$ --- measurement noise covariance
+  \item \texttt{x\_est}: $\mathbb{R}$ (initially 0)
+  \item \texttt{P}: $\mathbb{R}$ (initially 1)
+  \item \texttt{Q}, \texttt{R}: $\mathbb{R}$ (noise covariances)
 \end{itemize}
 
 \subsubsection{Environment Variables}
@@ -475,25 +608,19 @@ None.
 \subsubsection{Assumptions}
 \begin{itemize}
   \item Measurements are scalar real values from M4 at a fixed frame rate.
-  \item Process and measurement noise covariances $Q$ and $R$ are tuned to match webcam noise characteristics.
 \end{itemize}
 
 \subsubsection{Access Routine Semantics}
 
 \noindent \texttt{smooth(measurement)}:
 \begin{itemize}
-  \item transition: One-step Kalman filter update:
-  \begin{align*}
-    K &:= P / (P + R) & \text{(Kalman Gain)}\\
-    x\_est &:= x\_est + K \times (measurement - x\_est) & \text{(State Update)}\\
-    P &:= (1 - K) \times P + Q & \text{(Covariance Update)}
-  \end{align*}
+  \item transition: One-step Kalman filter update.
   \item output: Updated \texttt{x\_est} (the filtered scalar estimate).
 \end{itemize}
 
 \noindent \texttt{smooth\_landmarks(landmarks)}:
 \begin{itemize}
-  \item output: A new LandmarkList where each $(x, y, z)$ coordinate of every landmark has been individually filtered by \texttt{smooth()}.
+  \item output: A new LandmarkList where each $(x, y, z)$ coordinate $c \in R^{33 \times 3}$ has been individually filtered.
 \end{itemize}
 
 \newpage
