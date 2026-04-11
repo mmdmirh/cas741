@@ -94,7 +94,6 @@ Section~\ref{sec:changes} documents deviations from the VnV Plan.
 Section~\ref{sec:auto} describes automated testing infrastructure.
 Sections~\ref{sec:trace_req} and~\ref{sec:trace_mod} provide traceability
 matrices. Section~\ref{sec:coverage} summarizes code coverage.
-Section~\ref{sec:extras} reports the status of the project extras.
 
 \section{Functional Requirements Evaluation}
 \label{sec:func}
@@ -249,7 +248,7 @@ T8e --- 3D angle     & $60^\circ$  & $60.00^\circ$  & $< 0.01^\circ$ \\
 All five cases pass with $\text{MAE} < 0.01^\circ$, well within the
 $\pm 5^\circ$ NFR1 tolerance.
 
-\paragraph{Dynamic benchmark (MLREPORT Extra).}
+\paragraph{Dynamic benchmark.}
 An offline benchmark was conducted on a recorded dataset of exercise videos
 across three pose estimation backends: \texttt{mediapipe\_2d},
 \texttt{mediapipe\_3d}, and \texttt{movenet\_3d}. Videos were captured at
@@ -588,38 +587,6 @@ the PoC demonstration and the offline evaluation benchmark.
 Formal statement-level coverage measurement via \texttt{pytest-cov} was not
 collected in this iteration and is identified as a gap for future work.
 
-\section{Extras}
-\label{sec:extras}
-
-\subsection{Continuous Integration (CI)}
-
-\textbf{Status: Complete.} A GitHub Actions workflow executes lint and the
-full test suite on every push. The most recent build passes all 11 tests on
-\texttt{ubuntu-latest}.
-
-\subsection{ML Benchmark Report (MLREPORT)}
-
-\textbf{Status: Complete.} The offline evaluation
-(\texttt{src/offline\_eval\_results.csv}) benchmarks three pose estimation
-backends across multiple exercise types, camera pitches, and orientations.
-Key findings (also summarized in Table~\ref{tab:offline}):
-
-\begin{itemize}
-  \item All backends achieve $\geq 21$~FPS (latency $\leq 47$~ms), satisfying
-    real-time operation.
-  \item \texttt{mediapipe\_2d} provides the lowest average latency and best
-    knee-angle signal stability, justifying its selection as the production
-    backend in M4.
-  \item \texttt{movenet\_3d} exhibits higher elbow-angle frame-to-frame
-    variance, making it less suitable for Bicep Curl analysis.
-\end{itemize}
-
-\subsection{LLM Post-Session Analysis}
-
-\textbf{Status: Partially complete.} The backend generates a session summary
-JSON and submits it to a language model to produce a natural-language form
-report. Sample outputs are stored in \texttt{src/backend/llm\_logs/}.
-Full integration into the user interface is in progress.
 
 \bibliographystyle{plainnat}
 \bibliography{../../refs/References}
@@ -670,7 +637,7 @@ Full integration into the user interface is in progress.
   and these cases must be explicitly tested. T7 (state reversal) was also added
   in response to this feedback.
 
-  The offline backend comparison in the MLREPORT Extra arose from a question
+  The offline backend comparison arose from a question
   by Dr.\ Smith during the MG/MIS presentation: whether the choice of
   MediaPipe 2D in M4 was justified by evidence or by assumption. The offline
   benchmark dataset was designed to answer that question.
