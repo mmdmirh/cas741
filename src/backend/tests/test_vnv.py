@@ -32,7 +32,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import numpy as np
 from calibration_v2 import CalibrationParams
-from rep_counter_v2 import NormalizedRepCounter
+from modules.m6_exercise_state import ExerciseStateMachine as NormalizedRepCounter
 from modules.m5_kinematic_engine import IKinematicEngine, KinematicEngine
 from modules.m8_signal_smoothing import ISignalSmoother, KalmanSmoother
 from modules.m3_video_formatting import IVideoFormatter, Base64VideoFormatter
@@ -284,35 +284,35 @@ def test_T8_geometric_accuracy():
     p1 = np.array([1.0, 0.0, 0.0])
     p2 = np.array([0.0, 0.0, 0.0])
     p3 = np.array([0.0, 1.0, 0.0])
-    angle = engine.compute_joint_angle(p1, p2, p3)
+    angle = engine.compute_angle(p1, p2, p3)
     check("T8a-90°", abs(angle - 90.0) < 0.1, f"angle={angle:.2f}°")
 
     # Case 2: Straight (180°)
     p1 = np.array([1.0, 0.0, 0.0])
     p2 = np.array([0.0, 0.0, 0.0])
     p3 = np.array([-1.0, 0.0, 0.0])
-    angle = engine.compute_joint_angle(p1, p2, p3)
+    angle = engine.compute_angle(p1, p2, p3)
     check("T8b-180°", abs(angle - 180.0) < 0.1, f"angle={angle:.2f}°")
 
     # Case 3: Acute (45°)
     p1 = np.array([1.0, 0.0, 0.0])
     p2 = np.array([0.0, 0.0, 0.0])
     p3 = np.array([1.0, 1.0, 0.0])
-    angle = engine.compute_joint_angle(p1, p2, p3)
+    angle = engine.compute_angle(p1, p2, p3)
     check("T8c-45°", abs(angle - 45.0) < 0.1, f"angle={angle:.2f}°")
 
     # Case 4: Obtuse (120°)
     p1 = np.array([1.0, 0.0, 0.0])
     p2 = np.array([0.0, 0.0, 0.0])
     p3 = np.array([-0.5, math.sqrt(3)/2, 0.0])
-    angle = engine.compute_joint_angle(p1, p2, p3)
+    angle = engine.compute_angle(p1, p2, p3)
     check("T8d-120°", abs(angle - 120.0) < 0.1, f"angle={angle:.2f}°")
 
     # Case 5: 3D angle (60°)
     p1 = np.array([1.0, 0.0, 0.0])
     p2 = np.array([0.0, 0.0, 0.0])
     p3 = np.array([0.5, math.sqrt(3)/2, 0.0])
-    angle = engine.compute_joint_angle(p1, p2, p3)
+    angle = engine.compute_angle(p1, p2, p3)
     check("T8e-60°", abs(angle - 60.0) < 0.1, f"angle={angle:.2f}°")
 
 

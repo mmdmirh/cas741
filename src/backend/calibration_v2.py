@@ -13,7 +13,7 @@ import json
 import numpy as np
 
 # Ensure kinematics.py is also updated as per previous instructions
-from kinematics import KinematicFeatureExtractor
+from modules.m5_kinematic_engine import KinematicEngine as KinematicFeatureExtractor
 
 DEFAULT_STORE_PATH = Path(__file__).resolve().parent / "calibrations.json"
 

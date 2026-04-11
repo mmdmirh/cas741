@@ -29,7 +29,7 @@ keyword — subclasses that fail to implement all abstract methods will raise
 
 # Re-export all interfaces for convenient top-level access
 from modules.m3_video_formatting import IVideoFormatter, Base64VideoFormatter
-from modules.m4_pose_tracking import IPoseTracker, IPoseEstimator
+from modules.m4_pose_tracking import PoseEstimator, PoseProcessor
 from modules.m5_kinematic_engine import IKinematicEngine, KinematicEngine
 from modules.m6_exercise_state import IExerciseStateMachine, ExerciseStateMachine
 from modules.m8_signal_smoothing import ISignalSmoother, ILandmarkSmoother, KalmanSmoother, KalmanLandmarkSmootherAdapter

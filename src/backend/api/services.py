@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional
 from django.core.cache import cache
 
 from coaches import FormAnalyzer, LLMCoach
-from pose_backends import build_pose_backend, get_available_backends
+from modules.m4_pose_tracking import PoseProcessor, MediaPipePoseEstimator
 
 from .models import FormAnalysisRecord, LLMInteraction, WorkoutSessionRecord, WorkoutSetRecord
 
@@ -36,12 +36,12 @@ def get_root_payload() -> Dict[str, Any]:
     return {
         "message": "Welcome to FitCoachAR - Real-Time Adaptive Exercise Coaching API",
         "pose_backend": POSE_BACKEND_NAME,
-        "available_backends": get_available_backends(),
+        "available_backends": ["mediapipe_2d"],
     }
 
 
 def build_active_backend():
-    return build_pose_backend(POSE_BACKEND_NAME)
+    return PoseProcessor(estimator=MediaPipePoseEstimator())
 
 
 def timestamp_slug() -> str:

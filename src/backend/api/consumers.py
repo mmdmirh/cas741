@@ -2,6 +2,7 @@ import base64
 import json
 import logging
 import time
+import traceback
 from collections import deque
 
 import cv2
@@ -39,7 +40,7 @@ class PoseConsumer(AsyncWebsocketConsumer):
         try:
             await self._handle_text_message(text_data)
         except Exception as exc:
-            logger.error("WebSocket connection error: %s", exc)
+            logger.error("WebSocket connection error: %s\n%s", exc, traceback.format_exc())
 
     async def _handle_text_message(self, data: str):
         if data.startswith('{"command"'):

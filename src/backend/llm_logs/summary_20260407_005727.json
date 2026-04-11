@@ -1,0 +1,157 @@
+{
+    "type": "session_summary",
+    "timestamp": "20260407_005727",
+    "input_to_llm": {
+        "total_reps": 3,
+        "success_rate": 0.3333333333333333,
+        "mistakes": {
+            "errors_detected": 2
+        },
+        "avg_tempo": 1.4666764736175537,
+        "exercise": "bicep_curls",
+        "form_analysis": {
+            "score": 66.7,
+            "good_reps": 2,
+            "total_reps": 3,
+            "top_issues": [
+                {
+                    "super_form_code": "BODY_SWING",
+                    "count": 1,
+                    "percentage": 33.3,
+                    "description": "The user used their back and shoulders to lift the weight."
+                },
+                {
+                    "super_form_code": "ELBOW_DRIFT",
+                    "count": 1,
+                    "percentage": 33.3,
+                    "description": "The elbow moved forward or backward during the curl."
+                }
+            ],
+            "snapshots": [
+                {
+                    "rep_number": 1,
+                    "timestamp": 1775523426.587428,
+                    "static_primitives": {
+                        "peak_flexion": {
+                            "value": 0.1,
+                            "category": "full_contraction"
+                        },
+                        "elbow_position": {
+                            "value": 0.124,
+                            "category": "slight_drift"
+                        }
+                    },
+                    "dynamic_primitives": {
+                        "lift_speed": {
+                            "value": 1.5,
+                            "category": "slow"
+                        },
+                        "swing_momentum": {
+                            "value": 0.634,
+                            "category": "body_swing"
+                        }
+                    },
+                    "form_states": [
+                        "BODY_SWING",
+                        "ELBOW_DRIFT"
+                    ],
+                    "feedback": {
+                        "is_good": false,
+                        "summary": "Reduce body momentum - isolate the bicep muscle.",
+                        "details": [
+                            "You achieved a full muscle contraction at the top of the curl.",
+                            "Your elbow drifted slightly from your body during the curl.",
+                            "The lifting phase was slow and controlled.",
+                            "Significant body swing detected - you're using momentum instead of muscle."
+                        ],
+                        "highlights": [
+                            "Reduce body momentum - isolate the bicep muscle.",
+                            "Keep your elbow stationary by your side."
+                        ]
+                    }
+                },
+                {
+                    "rep_number": 2,
+                    "timestamp": 1775523433.169535,
+                    "static_primitives": {
+                        "peak_flexion": {
+                            "value": 19.6,
+                            "category": "full_contraction"
+                        },
+                        "elbow_position": {
+                            "value": 0.024,
+                            "category": "anchored"
+                        }
+                    },
+                    "dynamic_primitives": {
+                        "lift_speed": {
+                            "value": 1105.7,
+                            "category": "explosive"
+                        },
+                        "swing_momentum": {
+                            "value": 0.25,
+                            "category": "slight_swing"
+                        }
+                    },
+                    "form_states": [
+                        "GOOD_REP"
+                    ],
+                    "feedback": {
+                        "is_good": true,
+                        "summary": "This was a well-executed rep with proper form!",
+                        "details": [
+                            "You achieved a full muscle contraction at the top of the curl.",
+                            "Your elbow stayed stable by your side - excellent form!",
+                            "The lift was explosive - this can reduce muscle engagement if too fast.",
+                            "There was slight body movement during the curl."
+                        ],
+                        "highlights": []
+                    }
+                },
+                {
+                    "rep_number": 3,
+                    "timestamp": 1775523434.6006122,
+                    "static_primitives": {
+                        "peak_flexion": {
+                            "value": 13.4,
+                            "category": "full_contraction"
+                        },
+                        "elbow_position": {
+                            "value": 0.015,
+                            "category": "anchored"
+                        }
+                    },
+                    "dynamic_primitives": {
+                        "lift_speed": {
+                            "value": 121.2,
+                            "category": "controlled"
+                        },
+                        "swing_momentum": {
+                            "value": 0.199,
+                            "category": "slight_swing"
+                        }
+                    },
+                    "form_states": [
+                        "GOOD_REP"
+                    ],
+                    "feedback": {
+                        "is_good": true,
+                        "summary": "This was a well-executed rep with proper form!",
+                        "details": [
+                            "You achieved a full muscle contraction at the top of the curl.",
+                            "Your elbow stayed stable by your side - excellent form!",
+                            "The lifting speed was well-controlled.",
+                            "There was slight body movement during the curl."
+                        ],
+                        "highlights": []
+                    }
+                }
+            ]
+        },
+        "rep_durations": [
+            1.4212830066680908,
+            1.5120699405670166
+        ]
+    },
+    "llm_response": "Great session! You completed 3 reps of bicep_curls \u2014 keep practicing, 33% were solid. Focus area: errors detected came up 2 times. Keep up the great work! \ud83d\udcaa"
+}
