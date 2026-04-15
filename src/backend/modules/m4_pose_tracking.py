@@ -655,12 +655,29 @@ class PoseProcessor(PoseBackend):
         # 2. Kinematic Analysis
         metrics = self.feature_extractor.extract_metrics(smoothed_landmarks, self.joint_map, self.selected_exercise)
 
+        primary_angle = float(metrics.get("primary", 0.0) or 0.0)
+        try:
+            feats = self.feature_extractor.extract_all_features(smoothed_landmarks, self.joint_map)
+        except Exception:
+            feats = {}
+        right_elbow_angle = float(feats.get("right_elbow_angle", 0.0) or 0.0)
+        right_knee_angle = float(feats.get("right_knee_angle", 0.0) or 0.0)
+        left_elbow_angle = float(feats.get("left_elbow_angle", 0.0) or 0.0)
+        left_knee_angle = float(feats.get("left_knee_angle", 0.0) or 0.0)
         payload = {
             "landmarks": smoothed_landmarks,
             "exercise": self.selected_exercise,
             "feedback": "",
             "rep_count": 0,
-            "rep_phase": "BOTTOM"
+            "rep_phase": "BOTTOM",
+            "primary_angle": primary_angle,
+            "right_elbow_angle": right_elbow_angle,
+            "right_knee_angle": right_knee_angle,
+            "left_elbow_angle": left_elbow_angle,
+            "left_knee_angle": left_knee_angle,
+            "elbow_angle": right_elbow_angle,
+            "knee_angle": right_knee_angle,
+            "form": metrics.get("form", {}),
         }
 
         # 3. Logic Pipeline (Common Mode)
