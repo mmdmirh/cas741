@@ -1,0 +1,46 @@
+{
+  "exercises": {
+    "bicep_curls": {
+      "records": [
+        {
+          "id": "default_bicep_curls_v1",
+          "timestamp": "2026-04-15T00:00:00Z",
+          "theta_low": 35.0,
+          "theta_high": 165.0,
+          "t_med": 1.5,
+          "t_min": 0.4,
+          "t_max": 8.0,
+          "capabilities": {"rom_min": 35.0, "rom_max": 165.0},
+          "form_constraints": {},
+          "tempo_profile": {"target_seconds": 1.5},
+          "symmetry_profile": {},
+          "theta_low_median": 35.0,
+          "theta_high_median": 165.0
+        }
+      ],
+      "active": ["default_bicep_curls_v1"],
+      "params": {"critic": 0.5, "deviation": 0.2}
+    },
+    "squats": {
+      "records": [
+        {
+          "id": "default_squats_v1",
+          "timestamp": "2026-04-15T00:00:00Z",
+          "theta_low": 85.0,
+          "theta_high": 170.0,
+          "t_med": 2.0,
+          "t_min": 0.5,
+          "t_max": 10.0,
+          "capabilities": {"rom_min": 85.0, "rom_max": 170.0},
+          "form_constraints": {},
+          "tempo_profile": {"target_seconds": 2.0},
+          "symmetry_profile": {},
+          "theta_low_median": 85.0,
+          "theta_high_median": 170.0
+        }
+      ],
+      "active": ["default_squats_v1"],
+      "params": {"critic": 0.5, "deviation": 0.2}
+    }
+  }
+}
