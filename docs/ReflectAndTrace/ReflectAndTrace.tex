@@ -2,6 +2,8 @@
 
 \usepackage{tabularx}
 \usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{longtable}
 
 \title{Reflection and Traceability Report on \progname}
 
@@ -16,129 +18,316 @@
 
 \maketitle
 
-\plt{Reflection is an important component of getting the full benefits from a
-learning experience.  Besides the intrinsic benefits of reflection, this
-document will be used to help the TAs grade how well your team responded to
-feedback.  Therefore, traceability between Revision 0 and Revision 1 is and
-important part of the reflection exercise.  In addition, several CEAB (Canadian
-Engineering Accreditation Board) Learning Outcomes (LOs) will be assessed based
-on your reflections.}
+This document summarizes how feedback received during the development of
+\progname{} (FitCoachAR) was addressed between Revision~0 and the Final
+Documentation, reflects on the design iterations, and reviews how the project
+unfolded relative to its original plan. Each feedback item below is linked to
+the closed GitHub issue that tracked it on the project repository
+(\href{https://github.com/mmdmirh/cas741}{mmdmirh/cas741}).
 
 \section{Changes in Response to Feedback}
 
-\plt{Summarize the changes made over the course of the project in response to
-feedback from TAs, the instructor, teammates, other teams, the project
-supervisor (if present), and from user testers.}
+All feedback was received either through GitHub issues or as annotated PDFs
+attached to review-request issues. Every item was addressed and every
+corresponding issue was closed. The tables below record the source, the
+summary of the feedback, the response, and a pointer to the issue.
 
-\plt{For those teams with an external supervisor, please highlight how the feedback 
-from the supervisor shaped your project.  In particular, you should highlight the 
-supervisor's response to your Rev 0 demonstration to them.}
+\subsection{Problem Statement}
 
-\plt{Version control can make the summary relatively easy, if you used issues
-and meaningful commits.  If you feedback is in an issue, and you responded in
-the issue tracker, you can point to the issue as part of explaining your
-changes.  If addressing the issue required changes to code or documentation, you
-can point to the specific commit that made the changes.  Although the links are
-helpful for the details, you should include a label for each item of feedback so
-that the reader has an idea of what each item is about without the need to click
-on everything to find out.}
+\begin{longtable}{p{0.06\textwidth} p{0.18\textwidth} p{0.34\textwidth} p{0.32\textwidth}}
+\toprule
+\textbf{\#} & \textbf{Source} & \textbf{Feedback} & \textbf{Response}\\
+\midrule
+\endhead
+1 & Dr.~Smith (\href{https://github.com/mmdmirh/cas741/issues/1}{\#1}) &
+The reader needs to know what FitCoachAR is and what problem it solves. &
+Rewrote the opening paragraph to describe the system and the gap it addresses
+(affordable, hardware-free AR form feedback).\\
+1 & Dr.~Smith (\href{https://github.com/mmdmirh/cas741/issues/1}{\#1}) &
+CAS~741 is not a real-time systems course; drop the real-time framing. &
+Removed all language framing the system as a real-time system; kept only the
+scientific-computing aspects (pose estimation, angle calculation, validity
+classification).\\
+1 & Dr.~Smith (\href{https://github.com/mmdmirh/cas741/issues/1}{\#1}) &
+Opening LaTeX quotes are rendered incorrectly (should use \texttt{``}). &
+Corrected all opening quotes in the Problem Statement.\\
+1 & Dr.~Smith (\href{https://github.com/mmdmirh/cas741/issues/1}{\#1}) &
+A machine-learning report would be a good fit as an extra. &
+Updated \texttt{Repos.csv} to list the Machine Learning Report as one of the
+two extras for the project.\\
+\bottomrule
+\end{longtable}
 
-\plt{If you were not organized with your commits, traceability between feedback
-and commits will not be feasible to capture after the fact.  You will instead
-need to spend time writing down a summary of the changes made in response to
-each item of feedback.}
+\subsection{SRS}
 
-\plt{You should address EVERY item of feedback.  A table or itemized list is
-recommended.  You should record every item of feedback, along with the source of
-that feedback and the change you made in response to that feedback.  The
-response can be a change to your documentation, code, or development process.
-The response can also be the reason why no changes were made in response to the
-feedback.  To make this information manageable, you will record the feedback and
-response separately for each deliverable in the sections that follow.}
+\begin{longtable}{p{0.06\textwidth} p{0.18\textwidth} p{0.34\textwidth} p{0.32\textwidth}}
+\toprule
+\textbf{\#} & \textbf{Source} & \textbf{Feedback} & \textbf{Response}\\
+\midrule
+\endhead
+5 & Y.~Mei (\href{https://github.com/mmdmirh/cas741/issues/5}{\#5}) &
+Symbols \$, $\theta_{thresh}$, $\theta_{low}$ missing from the Table of
+Symbols. &
+Added the missing symbols.\\
+6 & Y.~Mei (\href{https://github.com/mmdmirh/cas741/issues/6}{\#6}) &
+DD1 and DD2 cite different sources for the same underlying fact. &
+Unified the source of both DDs to \emph{Standard Biomechanics}.\\
+7 & Y.~Mei (\href{https://github.com/mmdmirh/cas741/issues/7}{\#7}) &
+R1 is not visibly traced to the Camera assumption in Table~R\_trace. &
+Updated the SRS Traceability Matrix so R1 is explicitly linked to A\_Camera
+(A2).\\
+8 & Y.~Mei (\href{https://github.com/mmdmirh/cas741/issues/8}{\#8}) &
+Add explicit vector-subtraction formulas for the joint-angle DDs. &
+Added the vector forms
+($\vec{v}_{femur} = P_{hip} - P_{knee}$, etc.) to GD\_KneeAngle and
+GD\_ElbowAngle.\\
+9 & Y.~Mei (\href{https://github.com/mmdmirh/cas741/issues/9}{\#9}) &
+``Not occluded'' in A\_Visibility is ambiguous. &
+Rewrote A\_Visibility to require a \emph{direct line of sight} to the target
+joints, and propagated this phrasing to GD\_ElbowAngle during the final pass.\\
+10 & Y.~Mei (\href{https://github.com/mmdmirh/cas741/issues/10}{\#10}) &
+Missing ``Data Definitions'' header; leftover template Appendix; misaligned GD
+tables; inconsistent TM numbering. &
+Added the header, removed the template Appendix, switched GD tables to
+\texttt{tabularx} for proper wrapping, and fixed the TM references.\\
+4 & Dr.~Smith (\href{https://github.com/mmdmirh/cas741/issues/4}{\#4}) &
+Detailed comments on the annotated SRS PDF. &
+Applied throughout the revision; individual items are tracked in the commits
+cited by the issue resolutions above.\\
+\bottomrule
+\end{longtable}
 
-\plt{If the feedback is general or incomplete, the TA (or instructor) will not
-be able to grade your response to feedback.  In that case your grade on this
-document, and likely the Revision 1 versions of the other documents will be
-low.} 
+\subsection{VnV Plan}
 
-\subsection{SRS and Hazard Analysis}
+\begin{longtable}{p{0.06\textwidth} p{0.18\textwidth} p{0.34\textwidth} p{0.32\textwidth}}
+\toprule
+\textbf{\#} & \textbf{Source} & \textbf{Feedback} & \textbf{Response}\\
+\midrule
+\endhead
+13 & Y.~Mei (\href{https://github.com/mmdmirh/cas741/issues/13}{\#13}) &
+Formatting inconsistencies. & Fixed.\\
+14 & Y.~Mei (\href{https://github.com/mmdmirh/cas741/issues/14}{\#14}) &
+Section~3.1 should list the actual reviewer names, not just roles. &
+Section~3.1 now names the assigned reviewers explicitly.\\
+15 & Y.~Mei (\href{https://github.com/mmdmirh/cas741/issues/15}{\#15}) &
+Dataset description is too vague. &
+Expanded the Dataset section to state that it covers a diverse distribution
+of correct/incorrect form, varying user heights, and camera angles.\\
+16 & Y.~Mei (\href{https://github.com/mmdmirh/cas741/issues/16}{\#16}) &
+Traceability matrix is missing. &
+Added the requirements--tests traceability matrix. It was further corrected
+during the final pass so that R1--R5 match the R\_Input/R\_Process/R\_Calc/
+R\_Verify/R\_Output identifiers used in the SRS.\\
+17 & Y.~Mei (\href{https://github.com/mmdmirh/cas741/issues/17}{\#17}) &
+Mentioning code reviews under \emph{Unit Testing} is confusing; it is already
+covered under implementation verification. &
+Removed the code-review discussion from the unit testing section.\\
+12 & Dr.~Smith (\href{https://github.com/mmdmirh/cas741/issues/12}{\#12}) &
+Detailed comments on the annotated VnV Plan PDF. &
+Incorporated throughout the revision, including the restructuring noted
+above.\\
+\bottomrule
+\end{longtable}
 
-\subsection{Design and Design Documentation}
+\subsection{MG and MIS}
 
-\subsection{VnV Plan and Report}
+\begin{longtable}{p{0.06\textwidth} p{0.18\textwidth} p{0.34\textwidth} p{0.32\textwidth}}
+\toprule
+\textbf{\#} & \textbf{Source} & \textbf{Feedback} & \textbf{Response}\\
+\midrule
+\endhead
+19 & Y.~Mei (\href{https://github.com/mmdmirh/cas741/issues/19}{\#19}) &
+MG is missing a revision history. &
+Added a full revision-history table (v1.0--v1.3) at the top of the MG.\\
+20 & Y.~Mei (\href{https://github.com/mmdmirh/cas741/issues/20}{\#20}) &
+Empty list of figures; unusual section numbering (7.0.1 style). &
+Added real figures (architecture diagram, TikZ Uses-Hierarchy DAG) and fixed
+the heading hierarchy so numbering is well-formed.\\
+21 & Y.~Mei (\href{https://github.com/mmdmirh/cas741/issues/21}{\#21}) &
+M4, M5, M8 should not be classified as \emph{Software Decision}; they describe
+externally visible behaviour. &
+Reclassified M4, M5, M8 as \emph{Behaviour-Hiding} in the Module Hierarchy
+table. During the final pass, Section~6 of the MG was restructured so that
+its subsection headers (Hardware-Hiding / Behaviour-Hiding / Software
+Decision) match the table, and the now-empty Software Decision entry is
+marked with~``--''.\\
+22 & Y.~Mei (\href{https://github.com/mmdmirh/cas741/issues/22}{\#22}) &
+Inconsistency in M8 usage: the DAG and the MIS disagreed on the direction of
+the M4/M8 dependency. &
+Corrected the DAG so it shows M4 \emph{uses} M8; updated the M8 MIS so its
+\emph{Uses} field reads \texttt{None} (M8 is a stateless filter).\\
+23 & Y.~Mei (\href{https://github.com/mmdmirh/cas741/issues/23}{\#23}) &
+M1, M2, M7 had no MIS sections. &
+Added full MIS sections for M1 (\texttt{get\_frame}), M2 (\texttt{draw\_overlay},
+\texttt{display}) and M7 (\texttt{update\_ui}, \texttt{get\_json}), each with
+module identifier, uses, syntax and semantics.\\
+24 & Y.~Mei (\href{https://github.com/mmdmirh/cas741/issues/24}{\#24}) &
+Input frames are mis-listed as environment variables for M3 and M4. &
+Reclassified frame inputs as access-program \emph{parameters}
+(\texttt{frame: bytes}). Environment variables are now reserved for truly
+external, persistent state (webcam hardware, browser DOM).\\
+25 & Dr.~Smith (\href{https://github.com/mmdmirh/cas741/issues/25}{\#25}) &
+Detailed comments on the annotated MG and MIS PDFs. &
+Applied throughout the revision; residual issues surfaced during the final
+pass (requirement-to-module trace table, M8 Uses) were also fixed.\\
+\bottomrule
+\end{longtable}
+
+\subsection{VnV Report}
+
+\begin{longtable}{p{0.06\textwidth} p{0.18\textwidth} p{0.34\textwidth} p{0.32\textwidth}}
+\toprule
+\textbf{\#} & \textbf{Source} & \textbf{Feedback} & \textbf{Response}\\
+\midrule
+\endhead
+26 & Y.~Mei (\href{https://github.com/mmdmirh/cas741/issues/26}{\#26}) &
+Peer reviewer was unable to schedule a VnV Report review in time. &
+Acknowledged; the report will be reviewed later by the instructor
+(see~\#27).\\
+27 & Dr.~Smith (\href{https://github.com/mmdmirh/cas741/issues/27}{\#27}) &
+Will review the VnV Report when the full project is complete. &
+The report reflects the executed test plan, including the consolidation of
+T3 into T2 and the decision not to implement the Robot-Framework E2E suite
+originally labelled~T9.\\
+\bottomrule
+\end{longtable}
 
 \section{Extras}
 
-\plt{Summarize the extras that were tackled by this project.  Extras
-can include usability testing, code walkthroughs, user documentation, formal
-proof, GenderMag personas, Design Thinking, etc.  Extras should have already
-been approved by the course instructor as included in your problem statement.}
+Two extras were pursued for this project: (i)~a \textbf{Machine Learning
+Report}, replacing an earlier extra at Dr.~Smith's suggestion (issue~\#1), and
+(ii)~a \textbf{User Manual} describing how to install, calibrate, and use the
+system. Both extras were approved as part of the Problem Statement and are
+listed in \texttt{Repos.csv}.
 
-\section{Design Iteration (LO11 (PrototypeIterate))}
+\section{Design Iteration (LO11)}
 
-\plt{Explain how you arrived at your final design and implementation.  How did
-the design evolve from the first version to the final version?} 
+The final design is the result of three substantial iterations.
 
-\plt{Don't just say what you changed, say why you changed it.  The needs of the
-client should be part of the explanation.  For example, if you made changes in
-response to usability testing, explain what the testing found and what changes
-it led to.}
+\textbf{Rev~0.} The first architecture treated FitCoachAR as a monolithic
+browser-side pipeline in which MediaPipe, the kinematic computation, and the
+state machine all lived in the same frontend process. This was convenient
+for the Proof-of-Concept but made the scientific logic (angle calculation,
+form validity) hard to test in isolation.
+
+\textbf{Rev~1 (MG/MIS presentation).} After the modular-design lectures and
+Dr.~Smith's feedback, the system was decomposed into eight modules along
+information-hiding lines, splitting the browser (M1, M2, M7) from the
+Python backend (M3--M6, M8). This made it possible to unit-test M5
+(kinematic engine) and M6 (state machine) in pytest without a camera in the
+loop, and directly addressed the review comment that the scientific
+computing \emph{secrets} were not being surfaced.
+
+\textbf{Rev~1.x (Final pass).} During peer review Yibing pointed out that
+the ``behavioural'' modules (M4, M5, M8) had been mis-filed under
+\emph{Software Decision}. The hierarchy was corrected to reflect the fact
+that pose tracking, angle computation, and smoothing are all required
+externally visible behaviours, not hidden implementation choices. A late
+internal audit also caught a stale requirement-to-module traceability table
+in the MG, which was re-derived from the SRS R\_Input\ldots R\_Output
+definitions. These changes did not alter the code; they aligned the
+documentation with what the system actually does.
+
+In all three iterations the same underlying need drove the design: make
+the scientific-computing core testable and auditable, rather than hiding it
+behind the UI.
 
 \section{Design Decisions (LO12)}
 
-\plt{Reflect and justify your design decisions.  How did limitations,
- assumptions, and constraints influence your decisions?  Discuss each of these
- separately.}
+\textbf{MediaPipe as the pose backend (M4).} MediaPipe was chosen because it
+runs on commodity webcams without depth hardware, satisfying the
+``affordable, no specialized hardware'' constraint from the Problem
+Statement. The decision is recorded as anticipated change \texttt{acMLModel}
+in the MG so that a future replacement (e.g.\ OpenPose, BlazePose-GHUM)
+would only touch M4.
 
-\section{Economic Considerations (LO23)}
+\textbf{Explicit Kalman smoothing as a separate module (M8).} MediaPipe's
+per-frame landmarks are noisy enough that the raw signal produces unstable
+angle estimates and spurious state-machine transitions. A stateless
+smoothing filter was introduced as its own module so the choice of filter
+(currently a 1-D Kalman per coordinate) can change without affecting the
+kinematic engine. Its \emph{Uses} set is \texttt{None} for the same reason.
 
-\plt{Is there a market for your product? What would be involved in marketing your 
-product? What is your estimate of the cost to produce a version that you could 
-sell?  What would you charge for your product?  How many units would you have to 
-sell to make money? If your product isn't something that would be sold, like an 
-open source project, how would you go about attracting users?  How many potential 
-users currently exist?}
+\textbf{State-machine based rep counting (M6).} A threshold-hysteresis FSM
+was preferred over an ML classifier because the squat and bicep-curl rep
+definitions are already expressible in closed form, and an FSM gives
+reviewers a clearly verifiable specification (see~IM\_RepetitionCount).
+Assumption A\_Visibility and the ``direct line of sight'' constraint
+followed directly from this decision: the FSM has no recovery path for
+missing landmarks, so the assumption is an explicit limitation, not an
+accident.
+
+\textbf{Separation of the Python backend from the browser front-end.} This
+was influenced by the testability constraint. By pushing M3--M6 and M8 into
+a Python process, the scientific computing modules can be exercised by
+pytest fixtures without any camera or browser, which is what T1, T2, T4--T8
+actually do.
+
+Limitations that shaped these decisions were: the inability to assume any
+depth sensor, the absence of a training dataset large enough to train a
+classifier of our own, and the course's emphasis on scientific-computing
+verifiability over end-to-end system testing.
 
 \section{Reflection on Project Management (LO24)}
 
-\plt{This question focuses on processes and tools used for project management.}
+\subsection{How Project Management Compared to the Development Plan}
 
-\subsection{How Does Your Project Management Compare to Your Development Plan}
+The project largely followed the planned workflow: weekly self-imposed
+milestones aligned with the CAS~741 deliverable schedule (Problem Statement
+$\rightarrow$ SRS $\rightarrow$ VnV Plan $\rightarrow$ MG/MIS $\rightarrow$
+Implementation $\rightarrow$ VnV Report $\rightarrow$ Final
+Documentation). GitHub issues were used both for peer review and for
+tracking Dr.~Smith's feedback, and each issue was closed with a commit
+reference, which made the final traceability exercise (this document)
+substantially easier.
 
-\plt{Did you follow your Development plan, with respect to the team meeting plan, 
-team communication plan, team member roles and workflow plan.  Did you use the 
-technology you planned on using?}
+The technology choices (Python~+ FastAPI backend, MediaPipe for pose,
+browser-side three.js front-end, LaTeX documentation, pytest) stayed
+consistent from the Problem Statement onward.
 
-\subsection{What Went Well?}
+\subsection{What Went Well}
 
-\plt{What went well for your project management in terms of processes and 
-technology?}
+\begin{itemize}
+  \item \textbf{Issue-driven feedback.} Every review comment from Yibing and
+  Dr.~Smith became a GitHub issue, which was closed by a commit that named
+  the change. This made the Revision~0 $\rightarrow$ Final Documentation
+  diff trivial to reconstruct.
+  \item \textbf{Early modular split.} Moving the scientific core into its
+  own Python backend paid off repeatedly: it made it possible to unit-test
+  the kinematic engine and state machine without a camera.
+  \item \textbf{Reviewing as a source of design improvements.} Several
+  issues (\#21, \#22, \#24) were not just formatting fixes; they exposed
+  real inconsistencies between my mental model and what was documented. The
+  reviews were the single biggest source of design-level improvements.
+\end{itemize}
 
-\subsection{What Went Wrong?}
+\subsection{What Went Wrong}
 
-\plt{What went wrong in terms of processes and technology?}
+\begin{itemize}
+  \item \textbf{Documentation drift.} Between Rev~0 and the final pass,
+  several documents (most visibly the MG traceability table and the VnV
+  Plan requirement numbering) drifted out of sync with the SRS. The
+  drift was only caught by a deliberate end-of-project audit; the regular
+  review cycles had not checked cross-document consistency.
+  \item \textbf{Late unit testing.} Unit tests were written close to the
+  implementation deadline rather than in parallel with each module. This
+  meant bugs surfaced at the end when there was little time to redesign.
+  \item \textbf{VnV Report scheduling.} The VnV Report was finished too
+  close to the peer-review window, which made it impossible for the peer
+  reviewer to return feedback in time (issue~\#26).
+\end{itemize}
 
-\subsection{What Would you Do Differently Next Time?}
+\subsection{What Would I Do Differently}
 
-\plt{What will you do differently for your next project?}
-
-\section{Ethics and Equity (LO18)}
-
-\plt{Describe how your team applied the principle of equity and universal design
-to ensure equitable treatment of all stakeholders.}
-
-\section{Reflection on Capstone}
-
-\plt{This question focuses on what you learned during the course of the capstone project.}
-
-\subsection{Which Courses Were Relevant}
-
-\plt{Which of the courses you have taken were relevant for the capstone project?}
-
-\subsection{Knowledge/Skills Outside of Courses}
-
-\plt{What skills/knowledge did you need to acquire for your capstone project
-that was outside of the courses you took?}
+\begin{itemize}
+  \item Run a \emph{cross-document consistency check} at every revision
+  boundary, not just at the end. A short checklist (requirement IDs,
+  module IDs, test IDs, assumption labels) would have caught the late
+  drift much earlier.
+  \item Write the unit tests alongside each module, not after. This would
+  have made the VnV Report's code-coverage section much stronger.
+  \item Budget the VnV Report the same amount of calendar time as the SRS
+  or MG, so that peer review is actually feasible.
+\end{itemize}
 
 \end{document}
-% rebuild
