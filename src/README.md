@@ -71,7 +71,38 @@ src/
   (`CEREBRAS_API_KEY`). The app runs without it; feedback will fall back
   to rule-based messages.
 
-## Running locally
+## Running locally — the Makefile (recommended)
+
+A top-level `Makefile` in `src/` automates environment setup and launches
+both services in parallel, so you only need **one terminal**.
+
+```bash
+cd src
+
+# First time only: create the Python virtualenv, pip install, npm install
+make install
+
+# Start the backend (daphne on :8000) and the frontend (vite on :5173)
+# in parallel
+make run
+
+# Other useful targets
+make test           # run the backend test suite
+make run-backend    # start only the backend
+make run-frontend   # start only the frontend
+make clean          # remove venv, node_modules, __pycache__
+make help           # list all targets
+```
+
+After `make run`, open `http://localhost:5173` in a browser and grant
+camera permission. The backend is reachable at `http://127.0.0.1:8000`
+(REST) and `ws://127.0.0.1:8000/ws` (pose streaming WebSocket).
+
+If you prefer to drive the servers manually (for debugging, or to
+override flags), the sections below document the equivalent raw
+commands.
+
+## Running locally — manual steps
 
 You need **two terminals**, one for the backend and one for the
 frontend.
