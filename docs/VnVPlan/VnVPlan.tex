@@ -12,6 +12,11 @@
 }
 \usepackage[round]{natbib}
 
+% Cross-document links into the SRS so requirement/IM/GD references
+% navigate the reader to the exact anchor.
+\usepackage{xr-hyper}
+\externaldocument{../SRS/SRS}
+
 \input{../Comments.text}
 \input{../Common.text}
 
@@ -35,6 +40,7 @@ Mar 03, 2026 & 1.1 & Detailed validation process and systematic reviews added\\
 Mar 12, 2026 & 1.2 & Addressed Yibing Mei's Peer Review feedback (traceability, dataset, and formatting)\\
 Apr 15, 2026 & 1.3 & Final-doc pass: fixed requirement-to-test traceability matrix to match SRS R1--R5; corrected section heading to R\_Verify; noted T3 numbering gap\\
 Apr 15, 2026 & 1.4 & Final Documentation release for CAS 741\\
+Apr 15, 2026 & 1.5 & Rubric pass: expanded acronyms table; fixed LaTeX quotes and em-dashes; added external SRS hyperlinks for IM/GD/R references; replaced hard-coded ``Section 4'' with \texttt{\textbackslash ref}; positive scope statement; team responsibilities; expanded Unit Test section with T\_M3/M5/M6/M8\\
 \bottomrule
 \end{tabularx}
 
@@ -43,13 +49,26 @@ Apr 15, 2026 & 1.4 & Final Documentation release for CAS 741\\
 \section{Symbols, Abbreviations, and Acronyms}
 
 \renewcommand{\arraystretch}{1.2}
-\begin{tabular}{l l} 
-  \toprule              
+\begin{tabular}{l l}
+  \toprule
   \textbf{symbol} & \textbf{description}\\
-  \midrule 
-  T & Test\\
-  SRS & Software Requirements Specification\\
-  VnV & Verification and Validation\\
+  \midrule
+  CI    & Continuous Integration\\
+  DD    & Data Definition (from the SRS)\\
+  E2E   & End-to-End (test)\\
+  FSM   & Finite State Machine\\
+  GD    & General Definition (from the SRS)\\
+  IM    & Instance Model (from the SRS)\\
+  MAE   & Mean Absolute Error\\
+  MG    & Module Guide\\
+  MIS   & Module Interface Specification\\
+  NFR   & Non-Functional Requirement\\
+  PoC   & Proof of Concept\\
+  R1--R5 & Functional requirements (R\_Input, R\_Process, R\_Calc, R\_Verify, R\_Output) defined in the SRS\\
+  SRS   & Software Requirements Specification\\
+  T     & Test case (e.g.\ T1 = Test case 1)\\
+  TM    & Theoretical Model (from the SRS)\\
+  VnV   & Verification and Validation\\
   \bottomrule
 \end{tabular}\\
 
@@ -62,7 +81,13 @@ This document outlines the Verification and Validation (VnV) plan for the \progn
 \section{General Information}
 
 \subsection{Summary}
-\progname{} is a real-time exercise feedback system that uses computer vision (Pose Estimation Library) to estimate pose and a state machine to count repetitions and analyze form. This verification process is critical for the success of this project.
+\progname{} is a browser-based exercise feedback system that uses a
+computer-vision pose-estimation library (MediaPipe) to extract joint
+landmarks and an FSM (\hyperref[IM_RepetitionCount]{IM\_RepetitionCount})
+to count repetitions and classify exercise form. Because the scientific
+core of the system is the geometric computation of joint angles and the
+phase-based counting logic, verification of those two concerns is the
+primary purpose of this document.
 
 \subsection{Objectives}
 The primary objectives of this VnV plan are to:
@@ -75,12 +100,37 @@ The primary objectives of this VnV plan are to:
 \citet{SRS} provides the functional and non-functional requirements that will be verified.
 
 \subsection{Scope}
-Usability testing is currently out of scope for the Proof of Concept demonstration but will be formally evaluated in future iterations because usability is very important for a consumer-facing mobile application.
+\textbf{In scope.} Verification of the scientific-computing core of
+\progname{}: joint-angle geometry (\hyperref[GD_KneeAngle]{GD\_KneeAngle},
+\hyperref[GD_ElbowAngle]{GD\_ElbowAngle}), exercise validity instance
+models (\hyperref[IM_SquatValid]{IM\_SquatValid},
+\hyperref[IM_BicepCurlValid]{IM\_BicepCurlValid}), and the repetition
+counting state machine (\hyperref[IM_RepetitionCount]{IM\_RepetitionCount}).
+Validation against labelled exercise data is also in scope.
+
+\textbf{Out of scope.} Usability testing is deferred to a future
+iteration; the PoC deliverable targets scientific-computing correctness,
+not end-user experience. Hardware-specific camera-driver verification is
+also out of scope because \progname{} relies on the browser's
+\texttt{getUserMedia} API, which is treated as a trusted external
+component.
 
 \section{Plan}
 
 \subsection{Verification and Validation Team}
-The verification team consists of the primary developer (\authname) and the assigned peer reviewers from CAS 741, including Yibing Mei.
+\begin{itemize}
+  \item \textbf{Primary developer} --- \authname{}. Responsible for
+    writing every test case in this document, running the test suite
+    (\texttt{pytest}) and the system-level demonstrations, maintaining
+    the labelled validation dataset, and keeping this plan in sync with
+    the SRS and the implementation.
+  \item \textbf{Peer reviewer} --- Yibing Mei. Responsible for the
+    structured GitHub-issue review of the SRS, VnV Plan, MG, and MIS,
+    and for independent walkthrough of selected test cases.
+  \item \textbf{Instructor} --- Dr.\ Spencer Smith. Responsible for
+    annotated review of the plan and the VnV Report, and for the final
+    grading of the deliverables.
+\end{itemize}
 
 \subsection{SRS Verification and Validation}
 The SRS has been verified and validated through a systematic plan to ensure the requirements align with both software engineering standards and real-world fitness coaching needs. This plan includes:
@@ -101,7 +151,7 @@ The Design (MG and MIS) will be verified through:
 Implementation verification will focus on \textbf{Manual Unit Testing} of the core logic and \textbf{Automated Testing} where feasible. Formal reviews will be conducted by the CAS 741 peer reviewers.
 \begin{itemize}
     \item \textbf{Static Analysis}: Peer code reviews via GitHub Pull Requests, and automated linting utilizing \texttt{flake8} and \texttt{pylint}.
-    \item \textbf{Dynamic Testing}: The primary developer will manually run the system against defined test cases (see Section 4) prior to merging code.
+    \item \textbf{Dynamic Testing}: The primary developer will manually run the system against the defined test cases (see Section~\ref{sec:systests}) prior to merging code.
 \end{itemize}
 
 \subsection{Automated Testing and Verification Tools}
@@ -117,10 +167,10 @@ The following tools will be used:
     \item \textbf{Dataset}: Validation utilizes a custom recorded dataset consisting of 50 exercise videos. The dataset includes a diverse distribution of correct form, incorrect depth, incorrect angles, varying user heights, and different camera angles to ensure coverage of realistic usage scenarios. Each video has been manually labelled frame-by-frame indicating whether the user is exhibiting correct or incorrect physical form.
     \item \textbf{Validation Approach}: Compare system output against the labelled datasets.
     \item \textbf{Method}: Run \progname{} on the dataset and compare the expected (labelled) outputs against the actual system feedback.
-    \item \textbf{Oracle}: The labelled dataset serves as the oracle — it provides the "known truth" for validation.
+    \item \textbf{Oracle}: The labelled dataset serves as the oracle---it provides the ``known truth'' for validation.
 \end{itemize}
 
-\section{System Tests}
+\section{System Tests}\label{sec:systests}
 
 \subsection{Tests for Functional Requirements}
 
@@ -143,7 +193,7 @@ How test will be performed: Automatically feed angle data to the state machine f
 Type: Functional, Dynamic, Manual Simulation\\
 Initial State: System Initialized\\
 Input: Angle dips to $100^\circ$ only (never reaches $90^\circ$ threshold).\\
-Expected Output and Final State: \texttt{RepCount} does NOT increment. Feedback: "Go Deeper". Final state is Top.\\
+Expected Output and Final State: \texttt{RepCount} does NOT increment. Feedback: ``Go Deeper''. Final state is Top.\\
 Test Case Derivation: Tests the threshold logic (Boundary Value Analysis).\\
 How test will be performed: Manually feed angle data to the state machine function.
 
@@ -159,7 +209,7 @@ How test will be performed: Feed normalized progress data to the \texttt{analyze
 Type: Functional, Dynamic, Manual Simulation\\
 Initial State: System Initialized (Top State)\\
 Input: Sequence of progress values representing a full rep: $1.0 \rightarrow 0.0 \rightarrow 1.0$. The simulated timestamps for these frames are $t_0 = 0.0s, t_1 = 0.1s, t_2 = 0.2s$ (where $t_{min} = 0.5s$).\\
-Expected Output and Final State: \texttt{RepCount} does NOT increment. A warning "Too Fast" is logged. Final State: Top State.\\
+Expected Output and Final State: \texttt{RepCount} does NOT increment. A warning ``Too Fast'' is logged. Final State: Top State.\\
 Test Case Derivation: Verification of usage constraints defined in IM\_RepetitionCount.\\
 How test will be performed: Feed data with fast timestamps directly into the rep counter.
 
@@ -202,8 +252,8 @@ Test Case Derivation: Verification of robustness and accuracy in imperfect envir
 How test will be performed: Automated script processes the occluded videos and asserts the error handling flow.
 \end{enumerate}
 
-\section{Traceability Matrices}
-Table~\ref{Table:trace} shows the traceability between the requirements from the SRS and the system tests outlined in this document.
+\section{Traceability Matrices}\label{sec:trace}
+Table~\ref{Table:trace} shows the traceability between the requirements from the SRS and the system tests outlined in this document. Each SRS requirement is covered by at least one test case or an explicit PoC-demo verification; each test case traces back to exactly one requirement to keep the mapping bi-directional.
 
 \begin{table}[h!]
 \centering
@@ -225,10 +275,48 @@ R5 (R\_Output)  & T1, T2 (feedback text); PoC demo (overlay) \\
 \section{Unit Test Description}
 
 \subsection{Unit Testing Scope}
-Unit testing will focus on the \textbf{Analysis Module} (State Machine), as it contains the critical business logic. The UI, video input stream, and end-to-end user feedback loops will not be covered by automated unit tests due to the difficulty of mocking the camera context reliably, and are instead verified via dynamic simulation testing.
+Unit testing focuses on the two modules whose secrets carry the
+highest scientific risk: \textbf{M5 (Kinematic Engine)} and
+\textbf{M6 (Exercise State Machine)}. These modules are pure Python
+and have no dependency on the webcam, the browser, or the WebSocket
+layer, which makes them straightforward to exercise from
+\texttt{pytest}. The hardware-hiding module M1 and the display
+module M2 are not unit-tested because their behaviour is defined by
+browser APIs outside the project's control; they are covered instead
+by PoC-demo inspection.
 
-\subsection{Tests for Functional Requirements}
-The tests T1, T6, and T7 defined in the System Tests section also serve as the primary Unit Tests for the Analysis Module.
+The unit-test implementation lives in
+\texttt{src/backend/tests/test\_vnv.py} and a small interface
+conformance harness in \texttt{src/backend/test\_interfaces.py}; both
+are executed by \texttt{make test}.
+
+\subsection{Unit Tests for Functional Requirements}
+\begin{itemize}
+  \item \textbf{T\_M5 (Angle computation, R\_Calc).} Feeds
+    \texttt{KinematicEngine.compute\_angle} a suite of hand-derived
+    three-point configurations (collinear, right angle, obtuse,
+    degenerate/near-zero vector) and asserts the output is within
+    $\pm 0.5^\circ$ of the analytic answer. Covers the ``norm $<$ 1e-6''
+    guard branch.
+  \item \textbf{T\_M6 (State machine, R\_Verify).} Drives
+    \texttt{ExerciseStateMachine.update} with synthetic progress
+    traces (happy path, failed dip, stuck phase, timing-too-fast) and
+    asserts the resulting \texttt{RepState}. This is the same fixture
+    exercised at the system level by T1, T2, T4, T5, T6, and T7.
+  \item \textbf{T\_M8 (Smoothing, supporting R\_Process).} Streams a
+    noisy signal through \texttt{KalmanLandmarkSmoother} and asserts
+    the smoothed output is strictly closer to the ground-truth signal
+    (MAE reduction $\ge 30\%$) than the raw input.
+  \item \textbf{T\_M3 (Video formatting, R\_Input).} Encodes and
+    decodes a small synthetic frame via the Base64 JPEG path and
+    asserts the round trip is lossless up to JPEG quantization.
+\end{itemize}
+
+\subsection{Unit Tests for Nonfunctional Requirements}
+Non-functional accuracy is verified at the system level by T8 and the
+offline benchmark in the VnV Report; no dedicated unit tests are
+planned for NFR1 because the metric (MAE against a goniometer-labelled
+dataset) is inherently end-to-end.
 
 \bibliographystyle{plainnat}
 \bibliography{../../refs/References}
