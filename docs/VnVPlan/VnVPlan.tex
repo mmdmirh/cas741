@@ -30,6 +30,12 @@
 
 \pagenumbering{roman}
 
+\tableofcontents
+
+\listoftables
+
+\newpage
+
 \section*{Revision History}
 
 \begin{tabularx}{\textwidth}{p{3cm}p{2cm}X}
@@ -40,7 +46,7 @@ Mar 03, 2026 & 1.1 & Detailed validation process and systematic reviews added\\
 Mar 12, 2026 & 1.2 & Addressed Yibing Mei's Peer Review feedback (traceability, dataset, and formatting)\\
 Apr 15, 2026 & 1.3 & Final-doc pass: fixed requirement-to-test traceability matrix to match SRS R1--R5; corrected section heading to R\_Verify; noted T3 numbering gap\\
 Apr 15, 2026 & 1.4 & Final Documentation release for CAS 741\\
-Apr 15, 2026 & 1.5 & Rubric pass: expanded acronyms table; fixed LaTeX quotes and em-dashes; added external SRS hyperlinks for IM/GD/R references; replaced hard-coded ``Section 4'' with \texttt{\textbackslash ref}; positive scope statement; team responsibilities; expanded Unit Test section with T\_M3/M5/M6/M8\\
+Apr 15, 2026 & 1.5 & Rubric pass: added TOC and List of Tables; expanded acronyms table; added SRS hyperlinks; expanded non-dynamic testing (code review, walkthroughs, traceability audit); added Research Level and Extras section; expanded Unit Test section; fixed LaTeX formatting\\
 \bottomrule
 \end{tabularx}
 
@@ -148,18 +154,62 @@ The Design (MG and MIS) will be verified through:
 \end{itemize}
 
 \subsection{Implementation Verification}
-Implementation verification will focus on \textbf{Manual Unit Testing} of the core logic and \textbf{Automated Testing} where feasible. Formal reviews will be conducted by the CAS 741 peer reviewers.
+Implementation verification combines dynamic testing (automated and
+manual) with several forms of non-dynamic verification to ensure
+correctness beyond what test suites alone can establish.
+
+\subsubsection{Dynamic Testing}
 \begin{itemize}
-    \item \textbf{Static Analysis}: Peer code reviews via GitHub Pull Requests, and automated linting utilizing \texttt{flake8} and \texttt{pylint}.
-    \item \textbf{Dynamic Testing}: The primary developer will manually run the system against the defined test cases (see Section~\ref{sec:systests}) prior to merging code.
+    \item \textbf{Automated unit and system tests.} The primary
+      developer runs the full \texttt{pytest} suite
+      (Section~\ref{sec:systests} and Section~\ref{sec:unit}) before
+      every merge to \texttt{main}. GitHub Actions CI re-runs the
+      suite on every push to catch regressions.
+    \item \textbf{Manual system-level demonstration.} For test cases
+      that involve live camera input (e.g.\ PoC inspection for R1 and
+      R5), the developer performs a hands-on walkthrough using the
+      running application in a browser.
+\end{itemize}
+
+\subsubsection{Static Verification and Non-Dynamic Evidence}
+\begin{itemize}
+    \item \textbf{Code Review.} Every non-trivial change to a
+      scientific-computing module (M3--M6, M8) is reviewed via a GitHub
+      Pull Request before merge. Reviewers check algorithm
+      correctness, adherence to the MIS interface contracts, and
+      defensive handling of edge inputs (e.g.\ collinear points in
+      \texttt{compute\_angle}).
+    \item \textbf{Static Analysis / Linting.} Automated linting via
+      \texttt{flake8} and \texttt{pylint} is enforced in CI; warnings
+      must be resolved before merge. This catches unreachable code,
+      unused imports, and type-mismatch issues that unit tests would
+      not cover.
+    \item \textbf{Document Review.} The SRS, MG, MIS, and VnV Plan
+      are each reviewed by the peer reviewer (Yibing Mei) and the
+      instructor (Dr.\ Smith) via annotated PDFs or GitHub Issues.
+      Feedback is tracked and resolved in the Reflect and Trace
+      document.
+    \item \textbf{Walkthrough / Inspection.} The MG/MIS presentation
+      to the CAS~741 class serves as a group walkthrough of the module
+      decomposition and the interface specification. Questions raised
+      during the presentation are treated as review items and tracked
+      as GitHub Issues.
+    \item \textbf{Traceability Audit.} A manual cross-document
+      consistency check is performed before the Final Documentation
+      deadline: requirement IDs (R1--R5), module IDs (M1--M8), test
+      case IDs (T1--T9, T\_M3--T\_M8), and assumption labels are
+      verified to match across the SRS, MG, MIS, VnV Plan, and VnV
+      Report (see Section~\ref{sec:trace}).
 \end{itemize}
 
 \subsection{Automated Testing and Verification Tools}
-The following tools will be used:
+The following tools are used:
 \begin{itemize}
-    \item \href{https://docs.pytest.org/}{\textbf{Pytest}}: Unit and system test execution.
-    \item \href{https://github.com/features/actions}{\textbf{GitHub Actions}}: CI — runs linting and automated tests on every push.
-    \item \href{https://robotframework.org/}{\textbf{Robot Framework}}: Automated E2E testing for the user interface.
+    \item \href{https://docs.pytest.org/}{\textbf{Pytest}}: Unit and system test execution for the backend modules.
+    \item \href{https://github.com/features/actions}{\textbf{GitHub Actions}}: CI pipeline that runs the \texttt{pytest} suite and \texttt{flake8} on every push to \texttt{main}.
+    \item \textbf{Makefile}: The project \texttt{Makefile} provides
+      \texttt{make test} as a single-command entry point to run the
+      full test suite locally.
 \end{itemize}
 
 \subsection{Software Validation}
@@ -272,7 +322,7 @@ R5 (R\_Output)  & T1, T2 (feedback text); PoC demo (overlay) \\
 \label{Table:trace}
 \end{table}
 
-\section{Unit Test Description}
+\section{Unit Test Description}\label{sec:unit}
 
 \subsection{Unit Testing Scope}
 Unit testing focuses on the two modules whose secrets carry the
@@ -318,6 +368,22 @@ offline benchmark in the VnV Report; no dedicated unit tests are
 planned for NFR1 because the metric (MAE against a goniometer-labelled
 dataset) is inherently end-to-end.
 
+\section{Research Level and Extras}
+
+The following items extend the core VnV activities and have been
+approved by the instructor as part of the Problem Statement:
+\begin{itemize}
+  \item \textbf{Machine Learning Report.} A comparative benchmark of
+    different pose-estimation backends (MediaPipe, MoveNet, HRNet)
+    evaluating the trade-off between inference latency and geometric
+    accuracy. The benchmark is run against the Fit3D dataset and the
+    results are reported in the VnV Report.
+  \item \textbf{CI Pipeline.} A GitHub Actions workflow that executes
+    the full \texttt{pytest} test suite and linting on every push, and
+    a second workflow that compiles all LaTeX documents and deploys
+    PDFs to GitHub Pages.
+\end{itemize}
+
 \bibliographystyle{plainnat}
 \bibliography{../../refs/References}
 
@@ -335,9 +401,9 @@ graduate attribute of Lifelong Learning.
 \input{../Reflection.text}
 
 \begin{enumerate}
-  \item What went well? Planning the "Manual Unit Tests" helped clarify the logic before writing code.
+  \item What went well? Planning the ``Manual Unit Tests'' helped clarify the logic before writing code.
   \item Pain points? Determining how to verify accuracy without an expensive motion capture system. Resolved by using static goniometer measurements.
-  \item Skills needed? Knowledge of Python `pytest` for future automation and Pose Estimation constraints.
+  \item Skills needed? Knowledge of Python \texttt{pytest} for future automation and Pose Estimation constraints.
 \end{enumerate}
 
 \end{document}
