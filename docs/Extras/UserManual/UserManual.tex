@@ -42,44 +42,39 @@ v1.0.\\
 \section{Introduction}
 
 \progname{} is a browser-based exercise form-feedback tool. It uses
-the user's webcam to estimate body pose, computes joint angles in
-real time, and overlays a skeleton plus a rep counter and form-quality
-indicator on the live video. This manual describes how to install and
-use the reference implementation. It is written for a user who has
-basic familiarity with a terminal but is not expected to have prior
-Python or Node.js experience.
+your webcam to estimate body pose, computes joint angles in real time,
+and draws a skeleton plus a rep counter and a form-quality indicator
+on top of the live video. This manual explains how to install and run
+the reference implementation. It assumes you are comfortable with a
+terminal but does not assume prior Python or Node.js experience.
 
 \section{System Requirements}
 
 \subsection{Hardware}
 
 \begin{itemize}
-  \item A computer with an integrated or external USB webcam.
+  \item A computer with a built-in or USB webcam.
   \item At least 4~GB of free RAM.
-  \item A recent CPU: Apple~Silicon (M1 or newer) or any x86-64 CPU
-    from the last five years is sufficient.
-  \item A display resolution of at least $1280\times720$.
+  \item A fairly recent CPU. Apple~Silicon (M1 or newer), or any
+    x86-64 CPU from the last five years, is enough.
+  \item A display of at least $1280\times720$.
 \end{itemize}
 
 \subsection{Software}
 
 \begin{itemize}
-  \item \textbf{Operating system:} macOS~12 or newer, or a modern
-    Linux distribution (Ubuntu~22.04 or equivalent). Windows is
-    expected to work but has not been exercised during CAS~741
-    testing.
-  \item \textbf{Python~3.9} (for the backend). Other Python~3 versions
-    in the 3.9--3.11 range are likely to work but 3.9.6 is the
-    reference version used during development.
-  \item \textbf{Node.js~18} or newer (for the frontend; Vite requires
-    a modern Node).
-  \item \textbf{Redis} (optional, used by Django Channels for the
-    WebSocket transport; the default configuration uses an in-memory
-    channel layer that does not require Redis for single-process
-    local use).
-  \item \textbf{A modern browser} supporting the
-    \texttt{getUserMedia} API --- Chrome, Edge, Firefox, or Safari in
-    their current versions.
+  \item Operating system: macOS~12 or newer, or a recent Linux
+    (Ubuntu~22.04 or similar). Windows is expected to work but was
+    not exercised during CAS~741 testing.
+  \item Python~3.9 for the backend. Other Python~3 versions in the
+    3.9--3.11 range are likely to work; 3.9.6 is the reference.
+  \item Node.js~18 or newer for the frontend. Vite needs a recent
+    Node.
+  \item Redis is optional. Django Channels uses it for the WebSocket
+    transport. The default configuration uses an in-memory channel
+    layer, which does not need Redis for a single-process local run.
+  \item A modern browser that supports \texttt{getUserMedia}: Chrome,
+    Edge, Firefox, or Safari in their current versions.
 \end{itemize}
 
 \section{Installation}
@@ -160,57 +155,52 @@ Vite prints the development URL (typically
 
 \subsection{Grant camera permission}
 
-The first time the application is opened, the browser asks for
-permission to use the webcam. Camera permission is required;
-\progname{} cannot function without it. If the permission was denied
-previously, re-enable it through the browser's site-settings panel
-and reload the page.
+The first time you open the app, the browser asks for permission to
+use the webcam. Camera permission is required; the app cannot work
+without it. If you denied permission earlier, re-enable it in the
+browser's site-settings panel and reload the page.
 
 \section{Using the Application}
 
 \subsection{Select an exercise}
 
-The sidebar panel lists the supported exercises (squat, bicep curl).
-Choose one before starting a session. The selection is sent to the
-backend as the session parameter and determines which validity rules
-the state machine applies.
+The sidebar lists the supported exercises (squat, bicep curl). Pick
+one before starting a session. The selection is sent to the backend
+and tells the state machine which validity rules to apply.
 
 \subsection{Position the camera}
 
 For best results:
 
 \begin{itemize}
-  \item Place the camera so the full body is in frame for squats, or
+  \item Place the camera so your full body is in frame for squats, or
     so the relevant arm is clearly visible for bicep curls.
   \item Stand 2--3 metres back from the camera.
-  \item Use a plain background and well-diffused lighting.
-  \item Wear form-fitting clothing where practical; very loose
-    clothing reduces landmark tracking accuracy.
+  \item Use a plain background and diffused lighting.
+  \item Wear reasonably fitted clothing. Very loose clothing makes
+    landmark tracking less accurate.
 \end{itemize}
 
 \subsection{Interpret the overlay}
 
-The live view shows three elements:
+The live view shows three things:
 
 \begin{itemize}
-  \item \textbf{Skeleton overlay.} Lines drawn between the tracked
-    body landmarks. A visible overlay means the pose backend is
-    tracking you successfully. A flickering overlay indicates partial
-    occlusion or poor lighting.
-  \item \textbf{Rep counter.} Integer count of valid repetitions
-    completed so far in the current session. Increments only when
-    both the range-of-motion and timing constraints are satisfied.
-  \item \textbf{Form-quality badge.} Short text feedback such as
-    \textit{``Go deeper''} (partial range of motion) or
-    \textit{``Too fast''} (rep completed in less than
-    $t_{\min}$).
+  \item A skeleton overlay, drawn between the tracked body landmarks.
+    A steady overlay means the pose backend is tracking you. A
+    flickering overlay means partial occlusion or poor lighting.
+  \item A rep counter, which is the number of valid reps done so far
+    in the current session. It only goes up when both the
+    range-of-motion and the timing constraint are satisfied.
+  \item A short form-quality badge. Examples: ``Go deeper''
+    (range of motion was incomplete), ``Too fast'' (rep was
+    shorter than $t_{\min}$).
 \end{itemize}
 
 \subsection{Ending a session}
 
-Close the browser tab or click the \textit{End session} control in
-the sidebar. The WebSocket closes cleanly; no explicit logout is
-required.
+Close the browser tab or click the ``End session'' control in the
+sidebar. The WebSocket closes cleanly; no logout is needed.
 
 \section{Troubleshooting}
 

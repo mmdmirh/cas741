@@ -319,19 +319,15 @@ How test will be performed: Automatically pass $p$ values into the state machine
 
 \subsubsection{Accuracy (NFR1)}
 
-\paragraph{Evaluation philosophy --- a posteriori measurement, multiple
-test cases.}
-NFR1 states that calculated angles shall be within $\pm 5^\circ$ of visual
-ground truth. This bound is verified \emph{a posteriori} --- that is, by
-\emph{measuring} accuracy against an independent ground truth rather than
-by assertion. Because no single test case can justify a quantitative
-accuracy claim for a pose-estimation pipeline, the plan intentionally uses
-three complementary test cases at different layers of the stack: an
-analytical case that isolates the kinematic engine from the pose backend
-(T8), a dynamic cross-backend benchmark that characterises the real
-pose-estimation noise (T10), and a robustness case for imperfect
-environments (T9). Results from all three feed the corresponding section
-of the VnV Report.
+NFR1 requires calculated angles to be within $\pm 5^\circ$ of visual
+ground truth. The plan verifies this by measuring accuracy against
+ground truth rather than asserting it. One test case is not enough to
+justify an accuracy claim for a pose-estimation pipeline, so three
+tests are used at different layers of the system. T8 isolates the
+kinematic engine from the pose backend using analytical inputs. T10 is
+a dynamic cross-backend benchmark that captures real pose noise on
+recorded video. T9 checks behaviour under occlusion. The results from
+all three are carried over into the VnV Report.
 
 \begin{enumerate}
 \item{T8: Geometric Verification (Analytical Dataset)\\}
@@ -343,11 +339,9 @@ closed-form ground-truth angles.\\
 Expected Output and Final State: Each computed angle matches the
 closed-form ground truth to within $\pm 0.5^\circ$; mean absolute error
 reported.\\
-Test Case Derivation: Isolates the kinematic engine (\texttt{compute\_angle})
-from the pose backend so that any residual error on the dynamic
-benchmark (T10) can be attributed to the backend rather than to the
-math. This is the pure-math ``a posteriori'' leg of the NFR1 evidence
-chain.\\
+Test Case Derivation: isolates \texttt{compute\_angle} from the pose
+backend, so that any residual error seen in T10 can be attributed to
+the backend and not to the math.\\
 How test will be performed: Automated pytest case
 (\texttt{test\_vnv.py::test\_geometric\_accuracy}) over the five reference
 configurations.
@@ -361,9 +355,9 @@ Expected Output and Final State: The system identifies the occluded
 frames via the backend's per-landmark visibility score and gracefully
 skips them for angle extraction without crashing; error reported only on
 the visible-frame subset.\\
-Test Case Derivation: Accuracy must be characterised under imperfect
-conditions, not just on the clean set. Complements T10's stability
-measurement with a correctness-under-occlusion check.\\
+Test Case Derivation: accuracy also needs to be checked under
+imperfect conditions, not only on the clean set. This is the
+occlusion counterpart to T10's stability measurement.\\
 How test will be performed: Automated script processes the occluded videos
 and asserts both the skip behaviour and the error bound on visible frames.
 
@@ -384,12 +378,13 @@ $\overline{|\Delta\theta|}$ subject to the real-time latency budget. The
 chosen backend must satisfy the NFR1 $\pm 5^\circ$ bound on the T8
 analytical set and keep elbow $\overline{|\Delta\theta|} \le 5^\circ$
 on the recorded dataset.\\
-Test Case Derivation: Directly addresses the reviewer's request to
-\emph{measure} accuracy a posteriori with more than one test case. The
-metric $\overline{|\Delta\theta|}$ is a stability proxy --- it is not
-error versus ground truth (which is unavailable on live video), but it
-bounds the amount of information the downstream Kalman smoother
-(M8) must discard. Full results are reported in VnV Report \S4.1.\\
+Test Case Derivation: measures accuracy a posteriori with more than
+one test case, which is what the review feedback asked for. The
+metric $\overline{|\Delta\theta|}$ is a stability proxy. There is no
+per-frame ground truth on live video, so this is not an error
+measurement. It does put a limit on how much information the downstream
+Kalman smoother (M8) has to discard. Full results are in VnV
+Report \S4.1.\\
 How test will be performed: Offline benchmark script replays the
 recorded dataset through each backend and emits a CSV of latency and
 $\overline{|\Delta\theta|}$ per backend and per joint.

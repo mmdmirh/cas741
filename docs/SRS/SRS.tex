@@ -281,63 +281,49 @@ This document follows the Scientific Computing SRS template proposed by Smith an
 
 \subsection{User Characteristics} \label{SecUserCharacteristics}
 
-\progname{} is intended for two distinct user populations:
+There are two groups of users for \progname{}.
 
+\textbf{End users} are fitness enthusiasts or patients in physical
+therapy. They do not need any biomechanics, math, or programming
+knowledge. To use the software they just need to open a web browser,
+allow camera access, and read short text on the screen.
+
+\textbf{Readers of this SRS (reviewers, maintainers)} are expected to
+have some background at roughly the first-year undergraduate level in
+engineering or computer science:
 \begin{itemize}
-  \item \textbf{End users (people performing an exercise in front of the
-    camera).} These users are fitness enthusiasts or patients in
-    physical therapy. No biomechanical, mathematical, or programming
-    knowledge is assumed. The level of knowledge required to
-    \emph{use} the software is comparable to that required to use a
-    video-conferencing application: the user must be able to open a
-    web browser, grant camera permission, and read short on-screen
-    text.
-  \item \textbf{Reviewers of this SRS and maintainers of \progname{}.}
-    The reader of this document is expected to have knowledge
-    roughly at the level of a \emph{first-year undergraduate
-    engineering or computer-science curriculum}:
-    \begin{itemize}
-      \item \emph{Basic linear algebra} --- vectors, dot product, norm
-        (e.g.\ a first-year calculus or introductory linear-algebra
-        course).
-      \item \emph{Basic biomechanics vocabulary} --- joint, flexion,
-        extension, range of motion. This is typically encountered in
-        a first-year kinesiology course or acquired informally. No
-        clinical training is required.
-      \item \emph{Software engineering basics} --- familiarity with
-        the structure of an SRS and the separation of
-        requirements from design, at the level expected in an
-        upper-year undergraduate or first-year graduate software
-        engineering course (such as CAS~741 itself).
-    \end{itemize}
+  \item Basic linear algebra: vectors, dot product, and norm.
+  \item Basic biomechanics terms: joint, flexion, extension, range of
+    motion. A first-year kinesiology course or general familiarity is
+    enough; clinical training is not needed.
+  \item Software engineering basics: what an SRS is and the difference
+    between requirements and design, at the level of an upper-year
+    undergraduate or first-year graduate software engineering course.
 \end{itemize}
 
 \subsection{System Constraints}
 
-This subsection lists genuine constraints --- decisions that are fixed
-by the problem and cannot be postponed to the design document without
-changing the requirements. A rationale is given for each, so the
-reader can see why it belongs in the SRS rather than in the design.
+Only the decisions below are true requirements-level constraints. They
+are fixed by the problem and cannot be pushed to the design document
+without changing the requirements. A short rationale is given for each
+so it is clear why it is here and not later.
 
 \begin{itemize}
   \item The system is deployed as a \textbf{web application.}
-    \emph{Rationale:} the target user community is expected to run
-    \progname{} on an existing laptop or phone without installing
-    native software or specialised hardware. This is a
-    \emph{problem-level} constraint (``reach users without asking them
-    to install anything'') rather than an implementation decision. It
-    therefore belongs in the SRS; the specific web technologies used
-    to satisfy it (Django, WebSocket, a React front-end) are deferred
-    to the design document.
-  \item The system relies on an off-the-shelf \textbf{pose-estimation
-    backend} (e.g.\ MediaPipe, MoveNet) rather than a custom-trained
-    model. \emph{Rationale:} training a pose-estimation model from
-    scratch is outside the scope of a one-term scientific-computing
-    project, and no single-subject dataset would justify it. Fixing
-    this up-front at the requirements level bounds the accuracy
-    achievable (NFR1) and is therefore a requirements-level
-    constraint, not a design choice. The specific backend in use is a
-    design decision and is recorded in the Module Guide.
+    \emph{Rationale:} the intended users should be able to run
+    \progname{} on a laptop or phone they already own, without
+    installing any software. This is a property of the problem, not a
+    design choice. The specific web stack used to satisfy it (Django,
+    WebSocket, a React front-end) is decided in the design document.
+  \item The system uses an off-the-shelf \textbf{pose-estimation
+    backend} (for example, MediaPipe or MoveNet) instead of a
+    custom-trained model. \emph{Rationale:} training a pose model from
+    scratch is not realistic in a one-term project, and a
+    single-subject dataset would not justify it anyway. This choice
+    also puts a limit on the accuracy the system can reach (see NFR1),
+    which is why it belongs with the requirements. The specific
+    backend chosen is a design decision and is recorded in the Module
+    Guide.
 \end{itemize}
 
 \section{Specific System Description}
@@ -663,76 +649,62 @@ This section details the instance models that use the general definitions to pro
 
 \subsection{Rationale}\label{SecRationale}
 
-This subsection records, item by item, \emph{why} the scope, the
-assumptions, and the constraints are as they are. It is written to
-stand alone, independent of any particular course or rubric --- a
-reader who has no knowledge of CAS~741 should still be able to follow
-it.
+This section explains why the scope, the assumptions, and the
+constraints were chosen.
 
-\paragraph{Rationale for scope.}
-\progname{} is scoped to two exercises (squat, bicep curl) and to
-monocular 2D analysis. The exercises were chosen because they are
-(i)~common enough to give the tool immediate value to the target user
-population, and (ii)~well-characterised in the biomechanics literature
-so that a small, checkable set of validity criteria can be written
-down (see IM\ref{IM_SquatValid}, IM\ref{IM_BicepCurlValid}).
-Restricting the problem to a single camera and 2D analysis was driven
-by the ``no specialised hardware'' problem-level constraint: any
-requirement that presupposes a depth sensor, an IMU, or a multi-camera
-rig would change the user population the tool can reach. Force,
-torque, and muscle activity are explicitly out of scope because
-measuring them requires instrumentation that the target user does not
-own.
+\paragraph{Scope.}
+\progname{} covers two exercises (squat and bicep curl) using a single
+camera and 2D analysis. Both exercises are common, and both have
+well-known biomechanical criteria that can be written as simple
+validity rules (see \iref{IM_SquatValid} and \iref{IM_BicepCurlValid}).
+Sticking to a single camera and 2D follows directly from the goal of
+running on hardware the user already owns; anything that needs a depth
+sensor, an IMU, or multiple cameras would shut out the intended users.
+Force, torque, and muscle activity are left out for the same reason:
+measuring them needs equipment the target user does not have.
 
-\paragraph{Rationale for the assumptions.}
-Each assumption buys a closed-form simplification that the
-mathematical models rely on, and each carries a failure mode that the
-system must be able to recognise at runtime:
+\paragraph{Assumptions.}
+Each assumption lets us keep the mathematical model simple, and each
+one has a failure mode that the system has to recognise at runtime.
 \begin{itemize}
-  \item A\ref{A_2D} (2D projection sufficient for squat knee angle)
-    allows the vector-angle model (\tref{TM:VectorAngle}) to be used
-    on image-plane coordinates. Its failure mode is off-axis camera
-    placement, which is why A\ref{A_Camera} (stationary camera) and
-    the ``side profile'' user responsibility in the System Context
-    are paired with it.
-  \item A\ref{A_Camera} (stationary camera) lets the system treat the
-    camera frame as a fixed coordinate system; relaxing this would
-    require ego-motion estimation, which is outside the scope of a
-    monocular SRS.
-  \item A\ref{A_Visibility} (unobstructed joints) is what permits the
-    pose-estimation backend to be treated as a black box. Its failure
-    mode (occlusion) is picked up by the per-landmark visibility
-    score and is verified by test T9 in the VnV Plan, rather than
-    being assumed away silently.
-  \item A\ref{A_Lighting} and A\ref{A_Resolution} are environment
-    pre-conditions imposed on the user. Their failure modes --- dark
-    scene, low-resolution camera --- are detected by the backend's
-    confidence output rather than handled analytically; this is the
-    approach recommended for scientific software whose inputs come
-    from imperfect sensors.
+  \item \aref{A_2D} (2D projection is enough for squat knee angle)
+    makes it possible to use \tref{TM:VectorAngle} directly on
+    image-plane coordinates. It fails when the camera is off-axis,
+    which is why we pair it with \aref{A_Camera} and the ``side
+    profile'' user responsibility in the System Context.
+  \item \aref{A_Camera} (stationary camera) lets us treat the camera
+    frame as a fixed coordinate system. Allowing a moving camera would
+    need ego-motion estimation, which is a different problem.
+  \item \aref{A_Visibility} (unobstructed joints) is what lets us use
+    the pose-estimation library as a black box. Occlusion is the
+    failure mode, and it is handled through the per-landmark
+    visibility score. Test T9 in the VnV Plan verifies this rather
+    than assuming the assumption always holds.
+  \item \aref{A_Lighting} and \aref{A_Resolution} are conditions the
+    user needs to provide. When either fails (dark scene, low
+    resolution), the backend confidence score drops and the affected
+    frames are skipped, so the failure is detected instead of silently
+    corrupting the output.
 \end{itemize}
 
-\paragraph{Rationale for the constraints.}
-The two constraints in \S3.3 are the only decisions considered
-\emph{requirements-level} rather than design-level. The
-web-application constraint is what defines the reachable user
-population (``anyone with a browser and a webcam''). The
-off-the-shelf pose-estimation constraint bounds the accuracy achievable
-by the system (NFR\ref{NFR_Accuracy}) because the dominant source of
-angular error is the upstream backend, not the downstream mathematics
---- this is demonstrated \emph{a posteriori} in the dynamic benchmark
-(VnV Report, \S4.1). Recording it at the SRS level makes the
-accuracy bound legible to the reviewer before the design document is
-read.
+\paragraph{Constraints.}
+The two constraints in Section 3.3 are requirements-level, not
+design-level. Being a web application is what defines who can use the
+tool: anyone with a browser and a webcam. Relying on an off-the-shelf
+pose-estimation backend places an upper bound on the accuracy the
+system can claim (\rref{NFR_Accuracy}), because most of the error
+comes from the backend, not from the math that runs on top of it. The
+dynamic benchmark in VnV Report \S4.1 confirms this \emph{a
+posteriori}. Stating the constraint here makes that accuracy bound
+visible before the reader reaches the design document.
 
-\paragraph{Trade-off summary.}
-Every decision above can be seen as trading specificity for reach. A
-more specialised tool (3D motion capture, clinical biomechanical
-models, multi-subject trained networks) would give sharper accuracy
-but would exclude the target user population. The scope, assumptions,
-and constraints are the minimum set that keeps the tool usable by
-somebody with a laptop and a webcam while still supporting a defensible
-accuracy claim.
+\paragraph{Trade-off.}
+All of these choices trade specificity for reach. A system using 3D
+motion capture, clinical biomechanical models, or a multi-subject
+trained network would give better accuracy, but it would also rule out
+the users we want to serve. What is kept here is the minimum that
+still lets the tool be usable on an ordinary laptop while supporting a
+defensible accuracy claim.
 
 \section{Likely Changes}    
 \begin{itemize}

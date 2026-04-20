@@ -25,157 +25,147 @@ with Pre-Trained Keypoint Estimators}
 
 \section{Introduction}
 
-FitCoachAR is a real-time exercise form-feedback system that consumes a
-webcam stream, extracts human skeletal keypoints, derives joint angles,
-and emits a repetition count and per-rep form-quality signal through an
-AR overlay. This report describes the machine-learning aspect of the
-system: the pre-trained pose-estimation backends that act as the
-upstream feature extractor, the signal-processing layer that sits on
-top of those backends, and the dynamic benchmark used to select between
-them. The project is scoped at the CAS~741 research level; no model
-was trained from scratch, so the ``ML'' contribution of this project
-is best characterised as \emph{applied} machine learning: model
-selection, evaluation, and integration.
+FitCoachAR is a real-time exercise form feedback system. It takes a
+webcam stream, extracts skeletal keypoints, computes joint angles, and
+emits a rep count and a form-quality signal through an AR overlay.
+This report covers the ML side of the system: the pre-trained
+pose-estimation backends that feed the kinematic pipeline, the
+signal-processing layer on top of them, and the dynamic benchmark used
+to pick between them. No model was trained from scratch for this
+project, so the ML contribution is more accurately described as
+applied machine learning: picking a model, evaluating it, and
+integrating it with the rest of the system.
 
 \section{Related Work}
 
-Two-dimensional multi-person keypoint estimation was popularised by
+2D multi-person keypoint estimation was popularised by
 OpenPose~\citep{Cao2019OpenPose}, which introduced part-affinity
-fields for associating body parts to individuals. On-device, low-latency
-pose estimation moved into broad use with the MediaPipe
+fields for associating body parts with individuals. Low-latency
+on-device pose estimation then spread with the MediaPipe
 framework~\citep{Lugaresi2019MediaPipe} and its BlazePose
-detector~\citep{Bazarevsky2020BlazePose}, which targets mobile CPUs
-via a two-stage detector/tracker design. Google's
-MoveNet~\citep{MoveNet2021} is a competing lightweight architecture
-trained on a larger pose corpus and used in this project as a
-comparison backend. For time-series denoising of keypoint coordinates
-we rely on the classical Kalman filter~\citep{Kalman1960}. The broader
-application area --- recognising and evaluating the quality of
-human motion --- has been surveyed, for example,
-by~\citet{Chen2021HAR} for sensor-based recognition; pose-based
-exercise-form feedback is a subset of that space with the added
-constraint of real-time visual output.
+detector~\citep{Bazarevsky2020BlazePose}, a two-stage
+detector/tracker design that runs on mobile CPUs. Google's
+MoveNet~\citep{MoveNet2021} is a competing lightweight model trained
+on a larger pose corpus, and it is used in this project as a
+comparison backend. For denoising the keypoint coordinates over time
+we use a classical Kalman filter~\citep{Kalman1960}. The broader area
+of recognising and evaluating human motion has been surveyed
+by~\citet{Chen2021HAR} for sensor-based activity recognition.
+Pose-based exercise-form feedback is a subset of that area, with the
+extra constraint of real-time visual output.
 
 \section{Dataset}
 
-FitCoachAR does not train any model, so there is no ``training set''
-in the classical sense. The dataset used in this project is the
-\emph{evaluation} dataset for the dynamic benchmark reported in the
-VnV Report (\S4.1). It consists of short recorded exercise clips
-captured by the author under controlled conditions:
+FitCoachAR does not train any model, so there is no training set in
+the usual sense. The dataset used here is the evaluation dataset for
+the dynamic benchmark in VnV Report \S4.1. It is a collection of
+short exercise clips recorded by the author under controlled
+conditions:
 
 \begin{itemize}
-  \item \textbf{Subject:} a single adult participant (the author),
-    clothed, well lit.
-  \item \textbf{Exercises:} squat (primary) and bicep curl.
-  \item \textbf{Camera pitches:} eye level and $45^{\circ}$-down.
-  \item \textbf{Camera orientations:} front, front-$45^{\circ}$, side,
-    back-$45^{\circ}$, and back.
-  \item \textbf{Format:} H.264 MP4, 30~FPS, 720p.
+  \item Subject: one adult (the author), clothed, in good lighting.
+  \item Exercises: squat (primary) and bicep curl.
+  \item Camera pitches: eye level and $45^{\circ}$ down.
+  \item Camera orientations: front, front-$45^{\circ}$, side,
+    back-$45^{\circ}$, back.
+  \item Format: H.264 MP4, 30~FPS, 720p.
 \end{itemize}
 
-No manual per-frame annotation was performed. Ground truth for joint
-angles comes from two sources: (i)~a closed-form analytical dataset of
-five synthetic three-point configurations with known angles spanning
-$[0^\circ, 180^\circ]$ (used in unit test T8 of the VnV Report), and
-(ii)~the state-machine ground truth for repetition counting, which is
-a physical property of the video (``was a valid rep performed?'') and
-can therefore be labelled from the video by inspection. This means
-the ML task reported here is \emph{not} supervised learning over a
-labelled dataset; it is \emph{model evaluation and selection} under a
-stability proxy. This is addressed explicitly in the Results section.
+No manual per-frame annotation was done. Ground truth for joint angles
+comes from two sources. The first is a closed-form analytical dataset
+of five synthetic three-point configurations with known angles
+spanning $[0^\circ, 180^\circ]$; this is used in T8 of the VnV Report.
+The second is the rep-counting ground truth, which is a physical
+property of the video (``was a valid rep performed or not?'') and can
+be labelled by watching the video. So the ML task reported here is
+not supervised learning over a labelled dataset. It is model selection
+and evaluation using a stability proxy. This is made explicit in the
+Results section.
 
 \section{Features}
 
-The features consumed by the downstream kinematic engine are the
-three-dimensional coordinates of six body landmarks: hip, knee, and
-ankle (for lower-body exercises), and shoulder, elbow, and wrist (for
-upper-body exercises). These are produced by the pre-trained pose
-backend and indexed into the backend's landmark list according to its
-published schema. No additional learned embedding is applied; the
-pipeline is deliberately feature-light to keep the end-to-end latency
-compatible with NFR1 (within-$\pm 5^\circ$) and the real-time
-user-experience requirement. Temporal smoothing is applied to each
-landmark channel independently using a per-axis Kalman
-filter~\citep{Kalman1960}, implemented in module M8
-(\texttt{KalmanLandmarkSmoother}); this step reduces
-frame-to-frame jitter before the angles are computed.
+The features the kinematic engine consumes are the 3D coordinates of
+six body landmarks: hip, knee and ankle for the lower body, and
+shoulder, elbow and wrist for the upper body. These come from the
+pre-trained pose backend and are indexed into its landmark list using
+the backend's published schema. No learned embedding is applied on
+top. Keeping the feature pipeline light is a deliberate choice: it
+keeps end-to-end latency inside the real-time budget and within the
+NFR1 $\pm 5^\circ$ accuracy target. Temporal smoothing is done per
+axis using a Kalman filter~\citep{Kalman1960}, implemented in module
+M8 (\texttt{KalmanLandmarkSmoother}); this cuts down frame-to-frame
+jitter before the angles are computed.
 
 \section{Implementation}
 
 \subsection{Pose estimation backends}
 
-Three backend configurations are evaluated:
+Three backend configurations were evaluated:
 
 \begin{itemize}
-  \item \textbf{MediaPipe 2D} --- the default production backend.
-    Uses BlazePose~\citep{Bazarevsky2020BlazePose} via the MediaPipe
-    Python package in ``2D'' mode, returning 33 landmarks per frame
-    with $(x, y)$ coordinates normalised to the image and a
-    per-landmark visibility score.
-  \item \textbf{MediaPipe 3D} --- the same BlazePose model with the
-    ``world landmarks'' output enabled, yielding
-    $(x, y, z)$ coordinates in metres relative to the subject's hip.
-    $z$ is produced by a learned regression head.
-  \item \textbf{MoveNet 3D} --- Google's MoveNet
-    model~\citep{MoveNet2021}, accessed through its TensorFlow-Hub
-    distribution, producing 17 keypoints.
+  \item MediaPipe 2D, the default production backend. Uses
+    BlazePose~\citep{Bazarevsky2020BlazePose} via the MediaPipe Python
+    package in 2D mode, producing 33 landmarks per frame with $(x,y)$
+    coordinates normalised to the image and a per-landmark visibility
+    score.
+  \item MediaPipe 3D, the same BlazePose model with ``world
+    landmarks'' enabled. This adds a $z$ coordinate in metres
+    relative to the subject's hip. $z$ comes from a learned
+    regression head.
+  \item MoveNet 3D~\citep{MoveNet2021}, Google's lightweight model,
+    used via its TensorFlow-Hub distribution. Produces 17 keypoints.
 \end{itemize}
 
-All three backends are treated as black boxes. They are wrapped by
-module M4 (\texttt{m4\_pose\_tracking.py}) behind a common
-\texttt{IPoseBackend} interface so that the downstream pipeline is
+The three backends are treated as black boxes. Module M4
+(\texttt{m4\_pose\_tracking.py}) wraps them behind a common
+\texttt{IPoseBackend} interface so the rest of the pipeline is
 backend-agnostic.
 
 \subsection{Downstream analytical pipeline}
 
-Once landmarks are produced, the analytical layer computes joint
-angles using the vector dot-product formulation
+Once the backend produces landmarks, the analytical layer computes
+joint angles using the vector dot-product formulation
 \begin{equation}
   \theta = \arccos\!\left(\frac{\overrightarrow{ba}\cdot
   \overrightarrow{bc}}{\|\overrightarrow{ba}\|\;\|\overrightarrow{bc}\|}\right)
   \cdot \frac{180}{\pi}
   \label{eq:angle}
 \end{equation}
-with a floating-point clamp on the cosine argument. These angles feed
-a four-state exercise FSM (module M6) that counts valid repetitions
-with a minimum-duration guard $t_{\min}$. The FSM is pure control
-logic with no learned parameters; it is included here because it
-consumes the ML-derived features and is therefore part of the
-inference-time system.
+with a clamp on the cosine argument to avoid floating-point overshoot.
+These angles feed the four-state exercise FSM in M6, which counts
+valid reps with a minimum-duration guard $t_{\min}$. The FSM is plain
+control logic and has no learned parameters. It is included here
+because it consumes the ML-derived features.
 
 \subsection{Training procedure}
 
 None. All three pose models are used at their published checkpoints
-with no fine-tuning. This is deliberate: the evaluation dataset is a
-single subject under controlled conditions, which is too small and
-too biased to justify fine-tuning; and the intended product quality
-depends on the backend's \emph{generalisation}, not on fit to the
-author's own silhouette.
+with no fine-tuning. The evaluation dataset is one subject under
+controlled conditions, which is too small and too biased to justify
+fine-tuning. And the quality that matters for this application is how
+well the backend generalises, not how well it fits the author's
+silhouette.
 
 \section{Results and Evaluation}
 
 \subsection{Evaluation protocol}
 
-Because the evaluation dataset has no dense per-frame angle ground
-truth, we use two complementary metrics:
+There is no dense per-frame angle ground truth for the recorded
+dataset, so two complementary metrics are used instead.
 
 \begin{enumerate}
-  \item \textbf{Analytical MAE (geometric).} On the five synthetic
-    angles of test T8 (VnV Report \S6.9), the mean absolute error of
-    the computed angle against the closed-form ground truth is
-    $<0.01^{\circ}$ for every reference case. This verifies the
-    kinematic engine is correct and the only remaining source of
-    angular error on real video comes from the pose backend itself.
-  \item \textbf{Stability proxy $\overline{|\Delta\theta|}$.} On the
-    recorded video dataset, we compute the mean absolute
-    frame-to-frame angle delta,
+  \item Analytical MAE (geometric). For the five synthetic angles in
+    test T8 (VnV Report \S6.9), the mean absolute error of the
+    computed angle against the closed-form ground truth is below
+    $0.01^{\circ}$ in every case. This confirms the kinematic engine
+    itself is correct, so any angular error on real video has to come
+    from the pose backend.
+  \item Stability proxy $\overline{|\Delta\theta|}$. For the recorded
+    dataset we compute
     $\overline{|\Delta\theta|} = \frac{1}{N{-}1}\sum_{i=1}^{N-1}
-    |\theta_i - \theta_{i-1}|$, per backend. This is a
-    \emph{stability} measure, not an error measure: lower values
-    indicate a smoother, less noisy output signal over time for a
-    subject whose true angle changes smoothly between adjacent
-    frames.
+    |\theta_i - \theta_{i-1}|$ per backend. This is a stability
+    measure, not an error measure: lower values mean a smoother
+    output signal over time when the true angle is changing smoothly.
 \end{enumerate}
 
 \subsection{Offline benchmark}
@@ -207,83 +197,79 @@ self-contained.
 \subsection{Analysis}
 
 MediaPipe 2D wins on knee-angle stability and on latency, which is
-why it is the production backend. Two observations are worth
-recording:
+the reason it is the production backend. Two patterns in the table
+are worth calling out:
 
 \begin{itemize}
-  \item \textbf{MediaPipe 3D is better on elbow, worse on knee.}
-    The $z$-regression head appears to help on more distal joints
-    (elbow, wrist) where in-plane projection ambiguity is largest,
-    but it injects noise on large-range-of-motion joints like the
-    knee. This is consistent with the known observation that
-    BlazePose's $z$-head is approximate and is most informative for
-    disambiguating near-frontal poses.
-  \item \textbf{MoveNet does worst on both joints.} MoveNet is a
-    17-keypoint model with coarser joint coverage than BlazePose's
-    33-landmark schema. The noisier output combined with the same
-    Kalman smoother gives a worse stability result end-to-end.
+  \item MediaPipe 3D is better than 2D on the elbow but worse on the
+    knee. The $z$-regression head seems to help on distal joints like
+    the elbow, where in-plane projection ambiguity is largest, but it
+    adds noise on large-range-of-motion joints like the knee. This
+    matches the known observation that BlazePose's $z$-head is only
+    approximate and is mostly informative near frontal poses.
+  \item MoveNet is the worst on both joints. It is a 17-keypoint
+    model, which is coarser than BlazePose's 33-landmark schema. The
+    noisier output, combined with the same Kalman smoother, gives a
+    worse end-to-end stability result.
 \end{itemize}
 
 \subsection{Limitations and failure cases}
 
-The benchmark has real limitations the reader should weigh:
+The benchmark has some real limitations:
 
 \begin{itemize}
-  \item \textbf{Single-subject evaluation.} All clips are of one
-    adult body type under controlled lighting. Generalisation to
-    other body types, clothing, and lighting is inherited from the
-    pose backend and is not directly measured here.
-  \item \textbf{Stability is not correctness.} A backend that is
-    consistently wrong by $10^\circ$ would score well on
-    $\overline{|\Delta\theta|}$. The complementary T8 analytical
-    test partially compensates for this by verifying the kinematic
-    engine, but it does not verify the pose backend itself against a
-    physical goniometer. An end-to-end goniometer validation was
-    planned but not executed; it remains an open item.
-  \item \textbf{No occlusion sweep.} The VnV Plan's T9 (Dynamic
-    Occlusion Verification) was designed but deferred. Behaviour
-    under severe limb occlusion is not quantified.
+  \item Single-subject evaluation. All clips are one adult body type
+    in controlled lighting. How well the backends generalise to other
+    body types, clothing and lighting is inherited from the pose
+    backend and not measured directly here.
+  \item Stability is not correctness. A backend that is consistently
+    wrong by $10^{\circ}$ would still score well on
+    $\overline{|\Delta\theta|}$. The T8 analytical test partly
+    compensates by verifying the kinematic engine, but it does not
+    verify the pose backend itself against a physical goniometer. An
+    end-to-end goniometer validation was planned but not done. It is
+    still open.
+  \item No occlusion sweep. T9 in the VnV Plan was designed but
+    deferred, so behaviour under severe limb occlusion is not
+    quantified.
 \end{itemize}
 
 \section{Feedback and Plans}
 
-Peer-review feedback during the term focused on two ML-adjacent
-points. First, the initial version of this report and the parent VnV
-Report used the abbreviation ``MAE'' for the stability proxy,
-conflating it with the genuine Mean Absolute Error reported in test
-T8; this was flagged by the reviewer and has been corrected in both
-documents by introducing the explicit
-$\overline{|\Delta\theta|}$ notation (see VnV Report \S4.1).
-Second, the decision to treat the pose backend as a black box and
-invest implementation effort in the downstream analytical layer was
-questioned; the benchmark numbers above are the justification for
-that choice, since they show the dominant source of end-to-end noise
-is the backend itself and no amount of smoothing at M8 can recover
-information that was lost upstream. Future work would (i)~run a
-physical goniometer validation against a sample of frames to turn
-$\overline{|\Delta\theta|}$ into a true MAE, (ii)~quantify behaviour
-under occlusion (T9), and (iii)~broaden the evaluation set to cover
-more subject and lighting configurations.
+Two peer-review comments during the term touched the ML side. The
+first was about the term ``MAE''. The earlier version of this report
+and of the VnV Report used MAE for the stability proxy, which
+conflated it with the actual Mean Absolute Error reported in T8. The
+reviewer flagged this, and both documents now use
+$\overline{|\Delta\theta|}$ for the stability metric (see VnV Report
+\S4.1). The second comment questioned the decision to treat the pose
+backend as a black box and to put effort into the downstream
+analytical layer. The benchmark numbers above are the answer: most of
+the end-to-end noise comes from the backend itself, and M8 smoothing
+cannot recover information the backend has already lost. Future work
+would run a goniometer validation on a sample of frames, which would
+turn $\overline{|\Delta\theta|}$ into a real MAE; quantify occlusion
+behaviour via T9; and broaden the evaluation set to more subjects and
+lighting conditions.
 
 \section*{Ethical and Data Considerations}
 
-The evaluation dataset in this project was produced by and of the
-author, so no third-party consent was required. For production
-deployment, however, two ethical risks are inherited from the
-pre-trained pose backends and must be stated explicitly:
+The evaluation dataset was produced by and of the author, so no
+third-party consent was required. For a real deployment, two ethical
+risks are carried over from the pre-trained backends and should be
+stated explicitly:
 
 \begin{itemize}
-  \item \textbf{Demographic bias.} Pose estimation accuracy is known
-    to vary with skin tone, body type, clothing, and lighting. A
-    form-feedback system that mis-estimates joint angles for some
-    subjects and not others will give worse coaching to those
-    subjects; this is a direct fairness concern.
-  \item \textbf{Privacy.} The system runs entirely on the user's
-    browser and a user-controlled backend; no video leaves the
-    client unless the user explicitly opts in to server-side
-    processing. The Django WebSocket endpoint does not persist
-    frames. This is an architectural decision, not a learned one,
-    but it is worth recording here because pose data is biometric.
+  \item Demographic bias. Pose-estimation accuracy is known to vary
+    with skin tone, body type, clothing and lighting. A form-feedback
+    system that is less accurate on some users than others will give
+    worse coaching to those users. This is a fairness concern.
+  \item Privacy. The system runs entirely on the user's browser and a
+    user-controlled backend. No video leaves the client unless the
+    user opts in to server-side processing. The Django WebSocket
+    endpoint does not store frames. This is an architectural
+    decision, but it is worth mentioning here because pose data is
+    biometric.
 \end{itemize}
 
 \bibliography{custom}
