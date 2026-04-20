@@ -41,6 +41,7 @@
 \midrule
 2026-04-08 & 1.0 & Initial VnV Report (System + Unit + Reflection)\\
 2026-04-15 & 1.1 & Final Documentation release for CAS 741\\
+2026-04-20 & 1.2 & Addressed Yibing Mei peer-review feedback: disambiguated ``MAE'' vs.\ mean frame-to-frame angle delta in the dynamic benchmark (\S\ref{sec:nfunc}); consolidated duplicated per-test subsections in \S\ref{sec:unit} to reduce overlap with \S\ref{sec:func}\\
 \bottomrule
 \end{tabularx}
 
@@ -254,28 +255,37 @@ An offline benchmark was conducted on a recorded dataset of exercise videos
 across three pose estimation backends: \texttt{mediapipe\_2d},
 \texttt{mediapipe\_3d}, and \texttt{movenet\_3d}. Videos were captured at
 multiple pitch angles (eye level, $45^\circ$ down) and orientations (front,
-front-45, side, back, back-45). The mean absolute frame-to-frame angle delta
-(\texttt{mean\_abs\_delta}) was used as a proxy for signal stability; lower
-values indicate a smoother, less noisy angle signal.
+front-45, side, back, back-45). The primary metric is the mean absolute
+frame-to-frame angle delta, denoted
+$\overline{|\Delta\theta|} = \frac{1}{N{-}1}\sum_{i=1}^{N-1}|\theta_i - \theta_{i-1}|$
+(referred to as \texttt{mean\_abs\_delta} in the code). This is a
+\emph{stability} metric, not an error-versus-ground-truth metric: lower values
+indicate a smoother, less noisy angle signal across consecutive frames.
+
+\noindent\textbf{Note on terminology.} ``MAE'' in this report is used only in
+the T8 analytical results (Table~\ref{tab:t8}), where it denotes
+Mean Absolute Error against a closed-form ground-truth angle. The dynamic
+benchmark below does \emph{not} have a per-frame ground truth available, so
+$\overline{|\Delta\theta|}$ (frame-to-frame stability) is reported instead.
 
 \begin{table}[H]
 \centering
 \begin{tabular}{l c c c}
 \toprule
-\textbf{Backend} & \textbf{Avg.\ Latency (ms)} & \textbf{Knee MAE ($^\circ$)} & \textbf{Elbow MAE ($^\circ$)}\\
+\textbf{Backend} & \textbf{Avg.\ Latency (ms)} & \textbf{Knee $\overline{|\Delta\theta|}$ ($^\circ$)} & \textbf{Elbow $\overline{|\Delta\theta|}$ ($^\circ$)}\\
 \midrule
 \texttt{mediapipe\_2d} & $\sim 39$ & $\sim 0.7$ & $\sim 3.8$\\
 \texttt{mediapipe\_3d} & $\sim 41$ & $\sim 1.2$ & $\sim 2.3$\\
 \texttt{movenet\_3d}   & $\sim 46$ & $\sim 1.4$ & $\sim 5.4$\\
 \bottomrule
 \end{tabular}
-\caption{Offline Benchmark --- Mean Absolute Frame-to-Frame Angle Delta by Backend}
+\caption{Offline Benchmark --- Mean Absolute Frame-to-Frame Angle Delta ($\overline{|\Delta\theta|}$) by Backend. Lower is more stable; this is \emph{not} error vs.\ ground truth.}
 \label{tab:offline}
 \end{table}
 
 \texttt{mediapipe\_2d} achieves the best throughput ($\sim 25$~FPS) and
-knee-angle stability (lowest frame-to-frame delta). This data justifies the
-design decision in M4 to use MediaPipe 2D as the production backend.
+knee-angle stability (lowest $\overline{|\Delta\theta|}$). This data justifies
+the design decision in M4 to use MediaPipe 2D as the production backend.
 
 \textbf{Outcome:} NFR1 is satisfied for the mathematical computation kernel.
 End-to-end physical validation against goniometer measurements was planned but
@@ -362,26 +372,12 @@ T\_MULTI  & M6     & 5 clean reps counted exactly (cosine wave, 300 frames) & \p
 \label{tab:allresults}
 \end{table}
 
-\subsection{T1 --- Perfect Squat}
-
-A synthetic cosine wave was generated to simulate a complete, correct squat:
-\[
-  \theta(t) = 135 + 45\cos\!\left(\frac{2\pi t}{2.0}\right)
-\]
-oscillating between $180^\circ$ (standing) and $90^\circ$ (squat depth) over
-60 samples spanning 2~s. The \texttt{ExerciseStateMachine} was initialized
-with $\theta_{low}{=}90^\circ$, $\theta_{high}{=}180^\circ$,
-$t_{min}{=}0.5$~s. After processing all 60 frames:
-\texttt{rep\_count}~=~1. \ppass
-
-\subsection{T2 --- Failed Rep}
-
-The same cosine wave was generated but with the trough set to $100^\circ$,
-intentionally above the $90^\circ$ threshold. Normalized progress
-$p = (\theta - 90) / 90$ never reaches $\leq 0.15$ at the bottom (since
-$\theta_{min} = 100^\circ$ gives $p_{min} \approx 0.11$ --- borderline, but the
-direction guard prevents a false positive). After processing all 60 frames:
-\texttt{rep\_count}~=~0. \ppass
+\paragraph{Note on section layout.}
+Tests T1, T2, and T5 are reported in Section~\ref{sec:func} (R4 evaluation,
+Table~\ref{tab:validity}) to avoid duplication. The subsections below cover
+only tests whose results require additional detail (state-transition traces,
+geometric accuracy, signal smoothing, multi-rep accumulation) beyond what
+Table~\ref{tab:allresults} already summarises.
 
 \subsection{T4 --- State Machine Cycle}
 \label{sub:t4}
@@ -406,13 +402,6 @@ $p$ & $t$~(s) & Angle~($^\circ$) & Expected Phase & Observed\\
 \end{table}
 
 All five phase assertions passed and \texttt{rep\_count}~=~1 at the end. \ppass
-
-\subsection{T5 --- Timing Constraint (Too Fast)}
-
-Progress sequence $[0.1, 0.9, 0.1]$ at timestamps $[0.0, 0.1, 0.2]$~s
-simulates a physically complete rep completed in 0.2~s. Since
-$\Delta t = 0.2 < t_{min} = 0.5$~s, the duration guard prevents the count
-from incrementing. \texttt{rep\_count}~=~0. \ppass
 
 \subsection{T6 --- Intermediate Ascend}
 
