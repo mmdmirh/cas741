@@ -1,0 +1,286 @@
+\documentclass{article}
+
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+
+\title{Development Plan\\\progname}
+
+\author{\authname}
+
+\date{}
+
+\input{../Comments.text}
+\input{../Common.text}
+
+\begin{document}
+
+\maketitle
+
+\begin{table}[hp]
+\caption{Revision History} \label{TblRevisionHistory}
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+\textbf{Date} & \textbf{Developer(s)} & \textbf{Change}\\
+\midrule
+Apr 20, 2026 & Mirhoseininejad & Consolidated Development Plan documenting the process actually followed during the January--April 2026 CAS~741 project cycle for \progname{}.\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\newpage{}
+
+This Development Plan records the administrative, process, and technology
+decisions adopted for \progname{}, a scientific computing project delivered
+for CAS~741 between January and April 2026. The plan is authored as a solo
+deliverable; sections that are framed in the course template around
+multi-person teams are adapted here to reflect a single-developer workflow.
+The remainder of the document covers: confidentiality and IP, copyright,
+meeting and communication patterns with the supervisor, role allocation,
+git workflow, project decomposition and scheduling, the Proof-of-Concept
+plan, the expected technology stack, and the adopted coding standard.
+
+\section{Confidential Information}
+
+\progname{} contains no confidential information from industry. All source
+code, documentation, and derived artefacts are developed from publicly
+available libraries (MediaPipe Pose, MoveNet, Django, NumPy, SciPy) and from
+publicly documented kinematics. No non-disclosure agreement is in place.
+
+\section{IP to Protect}
+
+There is no intellectual property requiring protection beyond the author's
+own work. No third-party IP agreement applies, and the author is not
+required to sign the Intellectual Property Guide Acknowledgement for this
+project.
+
+\section{Copyright License}
+
+\progname{} is released under the MIT License, as recorded in the
+\texttt{LICENSE} file at the root of the project repository
+(\url{https://github.com/mmdmirh/cas741}). The MIT License was adopted
+because it permits reuse of the refactored kinematics and state-machine
+modules in future personal or academic projects without additional
+licensing friction.
+
+\section{Team Meeting Plan}
+
+This is a solo project, so ``team meetings'' within the course sense do
+not apply. The developer's working cadence was:
+
+\begin{itemize}
+  \item \textbf{Self-directed work sessions:} 4--6 focused sessions per
+    week during term, primarily aligned with the CAS~741 Tuesday/Thursday
+    lecture and tutorial slots, and weekends.
+  \item \textbf{Supervisor / instructor interaction:} Dr.\ Spencer Smith
+    (CAS~741 instructor) served as the primary reviewer. Interaction took
+    the form of (i) in-class lecture Q\&A, (ii) the POC demonstration
+    (2026-03-05), (iii) written peer-review issues opened on the project
+    repository, and (iv) final-documentation review via GitHub issue \#27.
+  \item \textbf{Peer-review interaction:} Structured bi-directional peer
+    review with Yibing Mei, conducted on each major deliverable (SRS, MG,
+    MIS, VnV Plan, VnV Report) via GitHub issues on the respective
+    repositories. All feedback from the peer reviewer was triaged and
+    either applied or explicitly noted as deferred.
+\end{itemize}
+
+\section{Team Communication Plan}
+
+\begin{itemize}
+  \item \textbf{Primary channel:} GitHub issues on
+    \texttt{mmdmirh/cas741} --- used for all review requests, peer-review
+    feedback, and instructor follow-ups. Each peer review was a separate
+    issue to preserve traceability.
+  \item \textbf{Deliverable hand-offs:} review-request issues were opened
+    with a direct link to the relevant document PDF at its commit SHA.
+  \item \textbf{Synchronous channel:} in-class discussion during lecture
+    and tutorial slots; email for administrative matters.
+\end{itemize}
+
+\section{Team Member Roles}
+
+\progname{} is developed by a single author, so all roles are filled by
+Seyedmohamad Mirhosseininejad. For traceability the project was structured
+around the following role-hats the author wore at different times:
+
+\begin{itemize}
+  \item \textbf{Requirements engineer} --- authored the SRS, scoped
+    R1--R5 and NFR1--NFR2, maintained the traceability matrix.
+  \item \textbf{Architect} --- authored the Module Guide (MG) and the
+    Module Interface Specification (MIS); defined the eight-module
+    decomposition (M1--M8).
+  \item \textbf{Implementer} --- wrote the Python/Django backend, the
+    JavaScript frontend, and the WebSocket transport layer.
+  \item \textbf{Test engineer} --- authored the VnV Plan and the VnV
+    Report; implemented \texttt{src/backend/tests/test\_vnv.py}
+    (11 tests) and the interface-conformance harness.
+  \item \textbf{Reviewer} --- provided peer-review feedback to Yibing
+    Mei's project, and triaged incoming peer-review issues on this project.
+\end{itemize}
+
+\section{Workflow Plan}
+
+\begin{itemize}
+  \item \textbf{Git usage.} All work tracked in git on
+    \texttt{github.com/mmdmirh/cas741}. The \texttt{main} branch holds the
+    canonical state. For this solo project, small changes are committed
+    directly to \texttt{main}; larger or more disruptive changes (such as
+    the initial modular refactor from the CAS~772 prototype) are staged on
+    short-lived topic branches and merged once the corresponding tests
+    pass locally.
+  \item \textbf{Pull requests.} Not used as a review gate for this solo
+    project; peer review is conducted via issues rather than PRs, because
+    each reviewer reads the published PDF rather than an open diff.
+  \item \textbf{Issue management.} Every review request and every piece
+    of peer-review feedback is filed as a GitHub issue with a descriptive
+    title of the form \textit{``Peer Review of [artefact] by [reviewer]
+    --- [topic]''}. Issues are closed with a comment citing the commit SHA
+    that addressed them.
+  \item \textbf{CI/CD.} A GitHub Actions workflow in \texttt{.github/}
+    handles PDF rebuilds for the documentation site; the Python unit
+    suite is run locally via \texttt{make test} before significant
+    pushes. No production deployment pipeline is in scope for a
+    research-grade project.
+\end{itemize}
+
+\section{Project Decomposition and Scheduling}
+
+\begin{itemize}
+  \item \textbf{GitHub Projects:} not used as a separate board; issue
+    labels and milestones on the repository itself are sufficient for a
+    solo workload.
+  \item \textbf{Repository:}
+    \url{https://github.com/mmdmirh/cas741}.
+\end{itemize}
+
+Scheduling followed the CAS~741 course outline deadlines. The big-picture
+schedule, as actually delivered, was:
+
+\begin{table}[h!]
+\centering
+\begin{tabularx}{\textwidth}{l l X}
+\toprule
+\textbf{Phase} & \textbf{Target (2026)} & \textbf{Artefact}\\
+\midrule
+Problem Statement          & Jan                & ProblemStatement.pdf\\
+SRS (draft + peer review)  & Feb 11--15         & SRS.pdf\\
+VnV Plan                   & Feb 18 -- Mar 12   & VnVPlan.pdf\\
+Proof-of-Concept demo      & Mar 5              & live demo\\
+MG + MIS                   & Apr 3--5           & MG.pdf, MIS.pdf\\
+VnV Report                 & Apr 8--15          & VnVReport.pdf\\
+Reflection and Trace       & Apr                & ReflectAndTrace.pdf\\
+Final documentation pass   & Apr 15--20         & All PDFs\\
+EXPO presentation          & Apr                & expo.pdf\\
+\bottomrule
+\end{tabularx}
+\caption{Project Schedule, as Delivered}
+\label{tab:schedule}
+\end{table}
+
+\section{Proof of Concept Demonstration Plan}
+
+The two principal project risks identified at the start of the term were:
+
+\begin{enumerate}
+  \item \textbf{Pose-estimation feasibility risk.} Could a commodity
+    webcam and a third-party pose-estimation library (MediaPipe or
+    MoveNet) deliver skeletal keypoints at a stable enough frame rate,
+    and with enough angular accuracy, to support real-time exercise
+    form-feedback?
+  \item \textbf{Architectural-feasibility risk.} Could the monolithic
+    CAS~772 prototype be re-expressed as a hidden-secret modular
+    decomposition (eight modules M1--M8, with abstract-base-class
+    interfaces) without losing real-time behaviour?
+\end{enumerate}
+
+The POC demonstration (2026-03-05) addressed both risks by showing
+end-to-end live operation: a browser client capturing webcam frames,
+the Django WebSocket backend streaming MediaPipe landmarks back,
+joint angles computed via the new \texttt{KinematicEngine}, and the
+\texttt{ExerciseStateMachine} counting valid repetitions with visible
+AR overlay on the frontend. Surviving the POC confirmed both risks
+were retired and permitted the project to move into the design-artefact
+phase (MG / MIS / VnV Report).
+
+\section{Expected Technology}
+
+\subsection*{Programming languages}
+\begin{itemize}
+  \item \textbf{Backend:} Python 3.9.6.
+  \item \textbf{Frontend:} standard HTML / CSS / JavaScript (ES2020);
+    no transpilation step, deliberately kept dependency-free to preserve
+    the NFR2 portability claim.
+\end{itemize}
+
+\subsection*{Frameworks and libraries}
+\begin{itemize}
+  \item \textbf{Django + Django Channels} --- WebSocket transport between
+    browser client and backend pipeline.
+  \item \textbf{MediaPipe Pose} --- production pose-estimation backend
+    (M4). \textbf{MoveNet} --- comparison backend used in the offline
+    dynamic benchmark.
+  \item \textbf{NumPy, SciPy} --- vector arithmetic for
+    \texttt{KinematicEngine.compute\_angle} and for the Kalman smoother
+    in M8.
+\end{itemize}
+
+\subsection*{Pre-trained models}
+MediaPipe Pose and MoveNet are used as provided by their upstream
+distributions. No custom model training is in scope.
+
+\subsection*{Components implemented despite library availability}
+The repetition state machine (M6) is hand-implemented rather than
+adapted from a general-purpose FSM library, because the validity
+criteria (IM\_SquatValid, IM\_BicepCurlValid, $t_{min}$/$t_{max}$
+timing guards) are tightly coupled to the SRS instance models and
+benefit from being readable alongside the requirement text.
+
+\subsection*{Linter}
+\texttt{flake8} and \texttt{pylint} are run locally on the Python
+backend as part of the static verification workflow recorded in the
+VnV Plan.
+
+\subsection*{Unit testing framework}
+\texttt{pytest 8.4.2}. Tests live in
+\texttt{src/backend/tests/test\_vnv.py} and an interface-conformance
+harness in \texttt{src/backend/test\_interfaces.py}; both are invoked
+by \texttt{make test}.
+
+\subsection*{Code coverage tool}
+\texttt{coverage.py} (pytest-cov plug-in) was investigated for the
+Code Coverage Metrics section of the VnV Report.
+
+\subsection*{Continuous integration}
+A GitHub Actions workflow (\texttt{.github/workflows}) rebuilds the
+documentation site on push. The Python test suite is run locally before
+pushes; a production CI pipeline was not in scope for a research-grade,
+solo project.
+
+\subsection*{Performance measurement}
+Average-latency and frame-to-frame stability measurements were
+produced by a bespoke offline benchmark script rather than by a
+general-purpose profiler such as Valgrind, because the metrics of
+interest (per-backend frame latency and $\overline{|\Delta\theta|}$)
+are domain-specific.
+
+\subsection*{Other tools}
+git, GitHub, GitHub Issues, and GitHub Pages (for hosted PDF review
+links) are part of the development toolchain.
+
+\section{Coding Standard}
+
+\begin{itemize}
+  \item \textbf{Python:} PEP~8, enforced by \texttt{flake8}. Type hints
+    are added on public module interfaces (M3, M4, M5, M6, M8) to make
+    the MIS contracts visible at the language level, backed by
+    \texttt{abc.ABC} base classes.
+  \item \textbf{JavaScript:} vanilla ES2020 with single-responsibility
+    modules (\texttt{m2\_display\_output.js},
+    \texttt{m7\_ui\_rendering.js}) and no framework dependency.
+  \item \textbf{LaTeX:} standard article class across all CAS~741
+    deliverables; shared macros for \texttt{\textbackslash progname} and
+    \texttt{\textbackslash authname} are factored into
+    \texttt{docs/Common.text} and \texttt{docs/Comments.text}.
+\end{itemize}
+
+\end{document}
