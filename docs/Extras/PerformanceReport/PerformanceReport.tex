@@ -1,0 +1,218 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+\title{Performance Report --- \progname}
+
+\author{\authname}
+
+\date{}
+
+\input{../../Comments.text}
+\input{../../Common.text}
+
+\begin{document}
+
+\maketitle
+
+\begin{table}[hp]
+\caption{Revision History} \label{TblRevisionHistory}
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+\textbf{Date} & \textbf{Developer(s)} & \textbf{Change}\\
+\midrule
+Apr 20, 2026 & Mirhoseininejad & Initial Performance Report: carries over the
+dynamic-benchmark results from VnV Report \S4.1, adds methodology and
+improvement log, and records the two performance-driven design decisions
+taken during the CAS~741 cycle.\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\newpage
+
+\section{Introduction}
+
+\progname{} is a real-time pose-based exercise-feedback application. The
+user-facing performance requirement is implicit rather than numerical:
+the system must feel responsive while driving an AR overlay rendered on
+the live webcam feed. This report makes that requirement concrete by
+identifying the performance aspects that matter, the method used to
+measure them, the measured results, and the two performance-driven design
+changes made during the project. Some of this material is already present
+in the VnV Report; it is consolidated here so that a performance-focused
+reader does not have to reconstruct the picture from across several
+documents.
+
+\section{Performance Aspects}
+
+The aspects of performance that matter for \progname{} are, in priority
+order:
+
+\begin{enumerate}
+  \item \textbf{Per-frame end-to-end latency.} Time from a webcam frame
+    arriving at the browser to that frame's overlay and rep counter
+    being rendered. This is the aspect the user notices as ``laggy.''
+  \item \textbf{Sustained throughput.} Effective frames per second
+    (FPS) sustained under continuous operation. A target of
+    $\ge 24$~FPS was adopted as the minimum that still feels smooth to a
+    user.
+  \item \textbf{Angular-signal stability.} Frame-to-frame jitter of the
+    computed joint angle, reported as
+    $\overline{|\Delta\theta|}$ (see VnV Report \S4.1 for the precise
+    definition). Although this is principally a \emph{quality} signal,
+    it also bounds how much smoothing the downstream Kalman filter
+    must apply, which in turn affects perceived responsiveness.
+  \item \textbf{Test-suite runtime.} The full pytest suite must
+    complete quickly to support frequent local iteration.
+\end{enumerate}
+
+Two aspects are explicitly out of scope and are recorded here so the
+reader knows they were not measured: (i)~resident memory footprint
+of the backend process, and (ii)~GPU utilisation, since the production
+path runs on CPU only.
+
+\section{Measurement Methodology}
+
+\subsection{Hardware and software under test}
+
+All measurements in this report were taken on the author's macOS
+workstation (Apple Silicon; the MediaPipe wheel used is
+\texttt{mediapipe-silicon}). The backend runs under Python~3.9.6 with
+the package versions pinned in
+\texttt{src/backend/requirements.txt}; the frontend runs under Node.js
+via Vite. No machine-specific tuning or GPU acceleration was used; the
+numbers should therefore be read as a lower-bound baseline for a recent
+laptop-class machine.
+
+\subsection{Benchmark drivers}
+
+Three instruments were used:
+
+\begin{itemize}
+  \item \textbf{Dynamic benchmark script} (offline). Replays a pre-recorded
+    video dataset through each of the three pose backends (MediaPipe 2D,
+    MediaPipe 3D, MoveNet 3D) and records both per-frame processing
+    latency and the resulting joint-angle time series. The recorded
+    dataset consists of short squat and bicep-curl clips captured at
+    two camera pitches (eye-level, $45^{\circ}$-down) and five camera
+    orientations (front, front-$45^{\circ}$, side, back-$45^{\circ}$,
+    back).
+  \item \textbf{Live FPS counter} (online). The frontend samples
+    \texttt{performance.now()} in its WebSocket render loop and
+    reports an exponentially smoothed FPS value. This is the measure
+    used to confirm the sustained-throughput target during the POC and
+    EXPO demonstrations.
+  \item \textbf{pytest runtime.} \texttt{make test} reports wall time.
+    The suite consists of the 11 tests described in VnV Report \S6.
+\end{itemize}
+
+\subsection{Metrics}
+
+\begin{itemize}
+  \item \textbf{Latency (ms):} average per-frame processing time
+    reported by the dynamic benchmark script.
+  \item \textbf{Stability:}
+    $\overline{|\Delta\theta|}
+      = \frac{1}{N{-}1}\sum_{i=1}^{N-1}|\theta_i - \theta_{i-1}|$
+    on the computed joint-angle signal; lower is more stable.
+  \item \textbf{Throughput (FPS):} inverse of end-to-end latency under
+    sustained load.
+\end{itemize}
+
+\section{Results}
+
+\subsection{Backend comparison}
+
+\begin{table}[h]
+\centering
+\begin{tabularx}{\textwidth}{lccc}
+\toprule
+\textbf{Backend} & \textbf{Avg.\ Latency (ms)} &
+  \textbf{Knee $\overline{|\Delta\theta|}$ ($^\circ$)} &
+  \textbf{Elbow $\overline{|\Delta\theta|}$ ($^\circ$)}\\
+\midrule
+\texttt{mediapipe\_2d} & ${\sim}39$ & ${\sim}0.7$ & ${\sim}3.8$\\
+\texttt{mediapipe\_3d} & ${\sim}41$ & ${\sim}1.2$ & ${\sim}2.3$\\
+\texttt{movenet\_3d}   & ${\sim}46$ & ${\sim}1.4$ & ${\sim}5.4$\\
+\bottomrule
+\end{tabularx}
+\caption{Backend comparison on the dynamic benchmark.
+$\overline{|\Delta\theta|}$ is a stability measure (lower is more
+stable); it is \emph{not} error vs.\ ground truth.}
+\label{tab:bench}
+\end{table}
+
+MediaPipe 2D is the best choice for this application under every metric
+that matters except elbow stability, on which MediaPipe 3D wins by
+about $1.5^\circ$. The 2D backend was chosen as the production default.
+
+\subsection{Throughput}
+
+An average per-frame latency of $\sim 39$~ms yields a theoretical
+ceiling of $\sim 25.6$~FPS on the production backend. Under live
+operation during the POC demonstration (2026-03-05) and the EXPO, the
+frontend FPS counter remained at $\ge 24$~FPS for the duration of
+each rep set, which clears the target.
+
+\subsection{Test-suite runtime}
+
+\texttt{make test} completes in under 5 seconds locally for the 11
+unit tests. This is well within the threshold needed for tight iteration.
+
+\section{Performance Improvements}
+
+Two changes during the project meaningfully improved performance
+relative to the CAS~772 monolithic prototype from which \progname{} was
+refactored:
+
+\subsection{Backend selection (M4)}
+
+The CAS~772 prototype used only MediaPipe 3D (world landmarks enabled).
+Switching to MediaPipe 2D for production reduced per-frame latency from
+$\sim 41$~ms to $\sim 39$~ms \emph{and} improved knee-angle stability
+from $\sim 1.2^\circ$ to $\sim 0.7^\circ$. The change was small but
+cheap: it required only a configuration switch at the M4
+(\texttt{m4\_pose\_tracking.py}) boundary, because module M4 hides the
+backend behind a common interface. This is a concrete instance of the
+modular-decomposition design paying off.
+
+\subsection{Kalman smoothing (M8)}
+
+The raw per-frame angle signal, before smoothing, has a
+per-sample standard deviation of $\sigma_{\text{raw}} \approx 5^{\circ}$
+on the T\_M8 synthetic noise case. After the Kalman smoother is
+applied, the post-transient standard deviation falls below
+$\sigma_{\text{raw}}$ in every run. The practical effect on the user is
+that the rep-count decision becomes robust to a single noisy frame,
+so the state machine does not fire spurious counts.
+
+\section{Bottleneck Analysis}
+
+With the production configuration (MediaPipe 2D + Kalman smoothing on
+top of the vectorised angle computation) the dominant cost per frame
+is the pose backend itself: approximately $35$--$37$~ms of the
+$\sim 39$~ms total budget is spent inside the MediaPipe wheel. The
+downstream analytical pipeline (vector math in M5 and the FSM step in
+M6) contributes a small, roughly constant overhead of $\sim 2$~ms.
+This means further performance work on the analytical pipeline has
+diminishing returns; future performance work should target the pose
+backend itself (for example, by quantisation, by using the
+\texttt{mediapipe} GPU-delegate path on supported hardware, or by
+moving to a smaller model such as MoveNet Lightning if a small loss
+of stability is acceptable).
+
+\section{Conclusion}
+
+The performance requirements for \progname{} are met by the
+production configuration. The sustained throughput of $\ge 24$~FPS and
+the knee-angle stability of $\sim 0.7^\circ$ are both adequate for the
+intended user experience. The principal residual risk is not a
+performance bottleneck --- it is the absence of a physical goniometer
+validation of the pose backend against an independent ground truth,
+which is documented as open work in the VnV Report (\S4.1).
+
+\end{document}

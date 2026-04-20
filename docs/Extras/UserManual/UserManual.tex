@@ -1,0 +1,288 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{enumitem}
+
+\title{User Manual --- \progname}
+
+\author{\authname}
+
+\date{}
+
+\input{../../Comments.text}
+\input{../../Common.text}
+
+\begin{document}
+
+\maketitle
+
+\begin{table}[hp]
+\caption{Revision History} \label{TblRevisionHistory}
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+\textbf{Date} & \textbf{Developer(s)} & \textbf{Change}\\
+\midrule
+Apr 20, 2026 & Mirhoseininejad & Initial User Manual covering system
+requirements, installation (backend and frontend), operation, usage
+walk-through, troubleshooting, and uninstallation for \progname{}
+v1.0.\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\section{Introduction}
+
+\progname{} is a browser-based exercise form-feedback tool. It uses
+the user's webcam to estimate body pose, computes joint angles in
+real time, and overlays a skeleton plus a rep counter and form-quality
+indicator on the live video. This manual describes how to install and
+use the reference implementation. It is written for a user who has
+basic familiarity with a terminal but is not expected to have prior
+Python or Node.js experience.
+
+\section{System Requirements}
+
+\subsection{Hardware}
+
+\begin{itemize}
+  \item A computer with an integrated or external USB webcam.
+  \item At least 4~GB of free RAM.
+  \item A recent CPU: Apple~Silicon (M1 or newer) or any x86-64 CPU
+    from the last five years is sufficient.
+  \item A display resolution of at least $1280\times720$.
+\end{itemize}
+
+\subsection{Software}
+
+\begin{itemize}
+  \item \textbf{Operating system:} macOS~12 or newer, or a modern
+    Linux distribution (Ubuntu~22.04 or equivalent). Windows is
+    expected to work but has not been exercised during CAS~741
+    testing.
+  \item \textbf{Python~3.9} (for the backend). Other Python~3 versions
+    in the 3.9--3.11 range are likely to work but 3.9.6 is the
+    reference version used during development.
+  \item \textbf{Node.js~18} or newer (for the frontend; Vite requires
+    a modern Node).
+  \item \textbf{Redis} (optional, used by Django Channels for the
+    WebSocket transport; the default configuration uses an in-memory
+    channel layer that does not require Redis for single-process
+    local use).
+  \item \textbf{A modern browser} supporting the
+    \texttt{getUserMedia} API --- Chrome, Edge, Firefox, or Safari in
+    their current versions.
+\end{itemize}
+
+\section{Installation}
+
+\subsection{Obtain the source}
+
+Clone the repository and check out the submodule that contains the
+application code:
+
+\begin{verbatim}
+git clone --recursive https://github.com/mmdmirh/cas741
+cd cas741/FitCoachAR
+\end{verbatim}
+
+If the repository was cloned without the \texttt{--recursive} flag,
+initialise the submodule explicitly:
+
+\begin{verbatim}
+git submodule update --init --recursive
+\end{verbatim}
+
+\subsection{Backend}
+
+From the \texttt{FitCoachAR/src/backend} directory:
+
+\begin{verbatim}
+cd src/backend
+python3 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+\end{verbatim}
+
+The pinned dependencies include Django, Channels, MediaPipe (via the
+\texttt{mediapipe-silicon} wheel on Apple~Silicon;
+\texttt{mediapipe} on x86-64), NumPy, SciPy, and \texttt{pykalman}.
+
+Apply the Django migrations:
+
+\begin{verbatim}
+python manage.py migrate
+\end{verbatim}
+
+\subsection{Frontend}
+
+From the \texttt{FitCoachAR/src/frontend} directory, in a separate
+terminal:
+
+\begin{verbatim}
+cd src/frontend
+npm install
+\end{verbatim}
+
+\section{Running \progname}
+
+\subsection{Start the backend}
+
+From the \texttt{src/backend} directory, with the virtual environment
+active:
+
+\begin{verbatim}
+python manage.py runserver
+\end{verbatim}
+
+The backend listens on \texttt{http://localhost:8000}. The WebSocket
+endpoint used by the frontend is served on the same host.
+
+\subsection{Start the frontend}
+
+From the \texttt{src/frontend} directory:
+
+\begin{verbatim}
+npm run dev
+\end{verbatim}
+
+Vite prints the development URL (typically
+\texttt{http://localhost:5173}). Open that URL in a supported browser.
+
+\subsection{Grant camera permission}
+
+The first time the application is opened, the browser asks for
+permission to use the webcam. Camera permission is required;
+\progname{} cannot function without it. If the permission was denied
+previously, re-enable it through the browser's site-settings panel
+and reload the page.
+
+\section{Using the Application}
+
+\subsection{Select an exercise}
+
+The sidebar panel lists the supported exercises (squat, bicep curl).
+Choose one before starting a session. The selection is sent to the
+backend as the session parameter and determines which validity rules
+the state machine applies.
+
+\subsection{Position the camera}
+
+For best results:
+
+\begin{itemize}
+  \item Place the camera so the full body is in frame for squats, or
+    so the relevant arm is clearly visible for bicep curls.
+  \item Stand 2--3 metres back from the camera.
+  \item Use a plain background and well-diffused lighting.
+  \item Wear form-fitting clothing where practical; very loose
+    clothing reduces landmark tracking accuracy.
+\end{itemize}
+
+\subsection{Interpret the overlay}
+
+The live view shows three elements:
+
+\begin{itemize}
+  \item \textbf{Skeleton overlay.} Lines drawn between the tracked
+    body landmarks. A visible overlay means the pose backend is
+    tracking you successfully. A flickering overlay indicates partial
+    occlusion or poor lighting.
+  \item \textbf{Rep counter.} Integer count of valid repetitions
+    completed so far in the current session. Increments only when
+    both the range-of-motion and timing constraints are satisfied.
+  \item \textbf{Form-quality badge.} Short text feedback such as
+    \textit{``Go deeper''} (partial range of motion) or
+    \textit{``Too fast''} (rep completed in less than
+    $t_{\min}$).
+\end{itemize}
+
+\subsection{Ending a session}
+
+Close the browser tab or click the \textit{End session} control in
+the sidebar. The WebSocket closes cleanly; no explicit logout is
+required.
+
+\section{Troubleshooting}
+
+\begin{table}[h]
+\centering
+\begin{tabularx}{\textwidth}{p{5cm} X}
+\toprule
+\textbf{Symptom} & \textbf{Likely cause and resolution}\\
+\midrule
+Browser says ``camera in use by another application.'' &
+  Close any other tab or application that is using the webcam and
+  reload the page.\\
+No skeleton appears on the video. &
+  The pose backend did not initialise. Check the backend console
+  for a MediaPipe import error. On Apple Silicon, verify
+  \texttt{mediapipe-silicon} is installed rather than plain
+  \texttt{mediapipe}.\\
+Rep counter never increments. &
+  Confirm you are reaching the full range of motion for the selected
+  exercise (for squats, the knee must cross
+  $\theta_{\text{low}} = 90^\circ$). Verify the camera sees your full
+  lower body.\\
+``Too fast'' shown on every rep. &
+  The minimum rep duration $t_{\min}$ is 0.5~s by default. Slow down,
+  or adjust $t_{\min}$ in the calibration parameters.\\
+Frontend cannot reach the backend WebSocket. &
+  Verify the backend is running on
+  \texttt{localhost:8000} and that no local firewall is blocking
+  loopback traffic.\\
+The page loads but latency is very high ($<10$~FPS). &
+  Check CPU load on the machine and close other heavy applications.
+  See the Performance Report for the expected latency budget per
+  backend.\\
+\bottomrule
+\end{tabularx}
+\caption{Common problems and resolutions.}
+\label{tab:trouble}
+\end{table}
+
+\section{Uninstallation}
+
+To remove \progname{} from the machine:
+
+\begin{enumerate}
+  \item Stop the backend and frontend processes
+    (\texttt{Ctrl+C} in each terminal).
+  \item Deactivate and delete the backend virtual environment:
+    \begin{verbatim}
+deactivate
+rm -rf src/backend/venv
+    \end{verbatim}
+  \item Delete the frontend dependency cache:
+    \begin{verbatim}
+rm -rf src/frontend/node_modules
+    \end{verbatim}
+  \item Delete the cloned repository itself if no longer needed:
+    \begin{verbatim}
+cd ../../../..
+rm -rf cas741
+    \end{verbatim}
+\end{enumerate}
+
+No system-level packages are installed by \progname{}, so no
+system-wide cleanup is required.
+
+\section{Getting Help}
+
+Bug reports and questions can be filed as issues on the project
+repository at
+\href{https://github.com/mmdmirh/cas741}{github.com/mmdmirh/cas741}.
+The supporting documentation --- Problem Statement, SRS, VnV Plan,
+VnV Report, Module Guide, and Module Interface Specification --- is
+in the \texttt{docs/} folder of the same repository.
+
+\end{document}
