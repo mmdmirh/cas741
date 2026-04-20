@@ -154,6 +154,7 @@
 2026-03-12 & 1.3 & Addressed Yibing Mei's Peer Review feedback (traceability and formatting)\\
 2026-04-15 & 1.4 & Final-doc pass: unified ``direct line of sight'' terminology in GD\_ElbowAngle\\
 2026-04-15 & 1.5 & Final Documentation release for CAS 741\\
+2026-04-20 & 1.6 & Addressed remaining items from Dr.\ Smith's annotated SRS review (issue \#4): (i)~expanded \S\ref{SecUserCharacteristics} User Characteristics to name the knowledge level expected of readers (first-year undergraduate linear algebra, biomechanics vocabulary, software-engineering basics); (ii)~rewrote \S3.3 System Constraints to give a per-item rationale for why each constraint belongs in the SRS rather than in the design document; (iii)~rewrote \S\ref{SecRationale} Rationale as a per-topic justification (scope, assumptions, constraints, trade-off summary) that stands alone without reference to the course\\
 \bottomrule
 \end{tabularx}
 
@@ -279,12 +280,64 @@ This document follows the Scientific Computing SRS template proposed by Smith an
 \end{figure}
 
 \subsection{User Characteristics} \label{SecUserCharacteristics}
-The end user is expected to be a fitness enthusiast or a patient undergoing physical therapy. They are assumed to have basic computer literacy.
+
+\progname{} is intended for two distinct user populations:
+
+\begin{itemize}
+  \item \textbf{End users (people performing an exercise in front of the
+    camera).} These users are fitness enthusiasts or patients in
+    physical therapy. No biomechanical, mathematical, or programming
+    knowledge is assumed. The level of knowledge required to
+    \emph{use} the software is comparable to that required to use a
+    video-conferencing application: the user must be able to open a
+    web browser, grant camera permission, and read short on-screen
+    text.
+  \item \textbf{Reviewers of this SRS and maintainers of \progname{}.}
+    The reader of this document is expected to have knowledge
+    roughly at the level of a \emph{first-year undergraduate
+    engineering or computer-science curriculum}:
+    \begin{itemize}
+      \item \emph{Basic linear algebra} --- vectors, dot product, norm
+        (e.g.\ a first-year calculus or introductory linear-algebra
+        course).
+      \item \emph{Basic biomechanics vocabulary} --- joint, flexion,
+        extension, range of motion. This is typically encountered in
+        a first-year kinesiology course or acquired informally. No
+        clinical training is required.
+      \item \emph{Software engineering basics} --- familiarity with
+        the structure of an SRS and the separation of
+        requirements from design, at the level expected in an
+        upper-year undergraduate or first-year graduate software
+        engineering course (such as CAS~741 itself).
+    \end{itemize}
+\end{itemize}
 
 \subsection{System Constraints}
+
+This subsection lists genuine constraints --- decisions that are fixed
+by the problem and cannot be postponed to the design document without
+changing the requirements. A rationale is given for each, so the
+reader can see why it belongs in the SRS rather than in the design.
+
 \begin{itemize}
-    \item The system is deployed as a \textbf{web application} for maximum portability. (Note: The specific architectural decision to make it a web application acts as a constraint on the implementation phase, though it could ideally be postponed to the design document).
-    \item The system depends on a \textbf{pose estimation backend} (e.g., MediaPipe or MoveNet) for raw keypoint extraction. 
+  \item The system is deployed as a \textbf{web application.}
+    \emph{Rationale:} the target user community is expected to run
+    \progname{} on an existing laptop or phone without installing
+    native software or specialised hardware. This is a
+    \emph{problem-level} constraint (``reach users without asking them
+    to install anything'') rather than an implementation decision. It
+    therefore belongs in the SRS; the specific web technologies used
+    to satisfy it (Django, WebSocket, a React front-end) are deferred
+    to the design document.
+  \item The system relies on an off-the-shelf \textbf{pose-estimation
+    backend} (e.g.\ MediaPipe, MoveNet) rather than a custom-trained
+    model. \emph{Rationale:} training a pose-estimation model from
+    scratch is outside the scope of a one-term scientific-computing
+    project, and no single-subject dataset would justify it. Fixing
+    this up-front at the requirements level bounds the accuracy
+    achievable (NFR1) and is therefore a requirements-level
+    constraint, not a design choice. The specific backend in use is a
+    design decision and is recorded in the Module Guide.
 \end{itemize}
 
 \section{Specific System Description}
@@ -608,9 +661,78 @@ This section details the instance models that use the general definitions to pro
 
 \end{itemize}
 
-\subsection{Rationale}
+\subsection{Rationale}\label{SecRationale}
 
-The decisions captured in this document are based on the goal of creating a scientifically rigorous and accessible exercise form analysis tool using 2D computer vision. The constraints and assumptions selected reflect the trade-off between widespread accessibility (using generic webcams instead of specialized hardware) and preserving geometric accuracy.
+This subsection records, item by item, \emph{why} the scope, the
+assumptions, and the constraints are as they are. It is written to
+stand alone, independent of any particular course or rubric --- a
+reader who has no knowledge of CAS~741 should still be able to follow
+it.
+
+\paragraph{Rationale for scope.}
+\progname{} is scoped to two exercises (squat, bicep curl) and to
+monocular 2D analysis. The exercises were chosen because they are
+(i)~common enough to give the tool immediate value to the target user
+population, and (ii)~well-characterised in the biomechanics literature
+so that a small, checkable set of validity criteria can be written
+down (see IM\ref{IM_SquatValid}, IM\ref{IM_BicepCurlValid}).
+Restricting the problem to a single camera and 2D analysis was driven
+by the ``no specialised hardware'' problem-level constraint: any
+requirement that presupposes a depth sensor, an IMU, or a multi-camera
+rig would change the user population the tool can reach. Force,
+torque, and muscle activity are explicitly out of scope because
+measuring them requires instrumentation that the target user does not
+own.
+
+\paragraph{Rationale for the assumptions.}
+Each assumption buys a closed-form simplification that the
+mathematical models rely on, and each carries a failure mode that the
+system must be able to recognise at runtime:
+\begin{itemize}
+  \item A\ref{A_2D} (2D projection sufficient for squat knee angle)
+    allows the vector-angle model (\tref{TM:VectorAngle}) to be used
+    on image-plane coordinates. Its failure mode is off-axis camera
+    placement, which is why A\ref{A_Camera} (stationary camera) and
+    the ``side profile'' user responsibility in the System Context
+    are paired with it.
+  \item A\ref{A_Camera} (stationary camera) lets the system treat the
+    camera frame as a fixed coordinate system; relaxing this would
+    require ego-motion estimation, which is outside the scope of a
+    monocular SRS.
+  \item A\ref{A_Visibility} (unobstructed joints) is what permits the
+    pose-estimation backend to be treated as a black box. Its failure
+    mode (occlusion) is picked up by the per-landmark visibility
+    score and is verified by test T9 in the VnV Plan, rather than
+    being assumed away silently.
+  \item A\ref{A_Lighting} and A\ref{A_Resolution} are environment
+    pre-conditions imposed on the user. Their failure modes --- dark
+    scene, low-resolution camera --- are detected by the backend's
+    confidence output rather than handled analytically; this is the
+    approach recommended for scientific software whose inputs come
+    from imperfect sensors.
+\end{itemize}
+
+\paragraph{Rationale for the constraints.}
+The two constraints in \S3.3 are the only decisions considered
+\emph{requirements-level} rather than design-level. The
+web-application constraint is what defines the reachable user
+population (``anyone with a browser and a webcam''). The
+off-the-shelf pose-estimation constraint bounds the accuracy achievable
+by the system (NFR\ref{NFR_Accuracy}) because the dominant source of
+angular error is the upstream backend, not the downstream mathematics
+--- this is demonstrated \emph{a posteriori} in the dynamic benchmark
+(VnV Report, \S4.1). Recording it at the SRS level makes the
+accuracy bound legible to the reviewer before the design document is
+read.
+
+\paragraph{Trade-off summary.}
+Every decision above can be seen as trading specificity for reach. A
+more specialised tool (3D motion capture, clinical biomechanical
+models, multi-subject trained networks) would give sharper accuracy
+but would exclude the target user population. The scope, assumptions,
+and constraints are the minimum set that keeps the tool usable by
+somebody with a laptop and a webcam while still supporting a defensible
+accuracy claim.
 
 \section{Likely Changes}    
 \begin{itemize}
