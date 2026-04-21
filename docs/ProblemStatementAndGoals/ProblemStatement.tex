@@ -28,6 +28,7 @@
 2026-01-17 & S. Mirhosseininejad & Initial Draft for CAS 741\\
 2026-01-25 & S. Mirhosseininejad & Address Feedbacks: Clarify FitCoachAR purpose, fix LaTeX quotes, refine scope\\
 2026-04-15 & S. Mirhosseininejad & Final Documentation release for CAS 741\\
+2026-04-20 & S. Mirhosseininejad & Added POC risks section.\\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -75,6 +76,17 @@ The project, \textbf{FitCoachAR}, addresses this gap by providing an augmented r
 \subsection{Environment}
 The system is using Python for the logic of backend. Also, the core logic relies on \textbf{NumPy} for the calculations of vectors and \textbf{MediaPipe/MoveNet} for the data of pose. The new iteration will be introducing \textbf{SQLite/SQLAlchemy} for the persistence of data and Pytest for the verification purpose.
 
+
+\section{Risks for Proof of Concept Demonstration}
+
+Two technical risks were identified for the POC demo (held 2026-03-05):
+
+\begin{enumerate}
+    \item \textbf{Pose-estimation feasibility.} Whether a standard webcam and an off-the-shelf pose-estimation library (MediaPipe or MoveNet) could produce skeletal keypoints at a high enough frame rate and angular accuracy to support real-time form feedback.
+    \item \textbf{Architectural feasibility.} Whether the monolithic CAS 772 prototype could be rewritten as an eight-module information-hiding decomposition (M1--M8) with abstract-base-class interfaces without losing the real-time behaviour shown in the prototype.
+\end{enumerate}
+
+The POC demo covered both risks end-to-end (live webcam capture, MediaPipe landmarks, kinematic-engine joint angles, rep counting with AR overlay). Both risks were retired as a result. A detailed POC plan is in the Development Plan.
 
 \section{Extras}
 

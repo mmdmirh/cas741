@@ -58,6 +58,7 @@ urlcolor=cyan
 2026-04-15 & 1.3 & Final-doc consistency pass: corrected M8 ``Uses'' from M4 to None\\
 2026-04-15 & 1.4 & Final Documentation release for CAS 741\\
 2026-04-20 & 1.5 & Added Module Kind classification (AO/ADT/Library) to each module.\\
+2026-04-20 & 1.6 & M2 reclassified as Library (no state); added initialisation assumption to M4.\\
 \bottomrule
 \end{tabularx}
 
@@ -223,8 +224,9 @@ Input from the hardware webcam sensor.
 Browser Canvas Rendering Module (\texttt{frontend/modules/m2\_display\_output.js})
 
 \subsection{Module Kind}
-Abstract Object. There is a single rendering context (the page canvas)
-with its own internal state; clients do not instantiate it.
+Library. The module has only behaviour (rendering side effects on the
+browser canvas) and no internal state; the canvas itself lives in the
+DOM and is treated as an environment variable.
 
 \subsection{Uses}
 None.
@@ -250,7 +252,8 @@ None.
 None.
 
 \subsubsection{Environment Variables}
-The visual display monitor / browser viewport.
+The browser DOM, specifically the 2D rendering context of the AR
+canvas element.
 
 \subsubsection{Access Routine Semantics}
 
@@ -369,6 +372,11 @@ None.
 \begin{itemize}
   \item The input frame contains at most one person.
   \item Lighting conditions meet minimum hardware requirements.
+  \item \textbf{Initialisation.} The backend is loaded the first time
+    the module is imported (Python module-level import performs the
+    \texttt{load\_model} step). Programmers using this module must
+    therefore import \texttt{m4\_pose\_tracking} before calling
+    \texttt{detect} or \texttt{is\_visible}.
 \end{itemize}
 
 \subsubsection{Access Routine Semantics}
