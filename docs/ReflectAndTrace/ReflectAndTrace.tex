@@ -146,11 +146,12 @@ the heading hierarchy so numbering is well-formed.\\
 21 & Y.~Mei (\href{https://github.com/mmdmirh/cas741/issues/21}{\#21}) &
 M4, M5, M8 should not be classified as \emph{Software Decision}; they describe
 externally visible behaviour. &
-Reclassified M4, M5, M8 as \emph{Behaviour-Hiding} in the Module Hierarchy
-table. During the final pass, Section~6 of the MG was restructured so that
-its subsection headers (Hardware-Hiding / Behaviour-Hiding / Software
-Decision) match the table, and the now-empty Software Decision entry is
-marked with~``--''.\\
+Partially applied. M4 (Pose Tracking) and M5 (Kinematic Engine) were
+reclassified as \emph{Behaviour-Hiding} as suggested. M8 (Signal Smoothing)
+was kept under \emph{Software Decision} because the filtering algorithm
+(Kalman filter, see AC4) is not in the SRS and is a software-level design
+choice. Section~6 of the MG was restructured so the subsection headers
+(Hardware-Hiding / Behaviour-Hiding / Software Decision) match the table.\\
 22 & Y.~Mei (\href{https://github.com/mmdmirh/cas741/issues/22}{\#22}) &
 Inconsistency in M8 usage: the DAG and the MIS disagreed on the direction of
 the M4/M8 dependency. &

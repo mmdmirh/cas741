@@ -54,6 +54,7 @@
 2026-04-07 & 1.2 & Reviewer's edit (Yibing Mei and Dr. Smith)\\
 2026-04-15 & 1.3 & Final-doc consistency pass: added Hardware/Behaviour-Hiding subsection headers in Section 6; corrected module-to-requirement traceability (Table~\ref{TblRT}) for R1--R5\\
 2026-04-15 & 1.4 & Final Documentation release for CAS 741\\
+2026-04-20 & 1.5 & Moved M8 (Signal Smoothing) from Behaviour-Hiding to Software Decision; Kalman-filter algorithm is not in the SRS (AC4).\\
 \bottomrule
 \end{tabularx}
 
@@ -226,16 +227,15 @@ actually be implemented.
 \multirow{1}{0.3\textwidth}{Hardware-Hiding} & \mref{m1}\\
 \midrule
 
-\multirow{7}{0.3\textwidth}{Behaviour-Hiding} & \mref{m2}\\
+\multirow{6}{0.3\textwidth}{Behaviour-Hiding} & \mref{m2}\\
 & \mref{m3}\\
 & \mref{m4}\\
 & \mref{m5}\\
 & \mref{m6}\\
 & \mref{m7}\\
-& \mref{m8}\\
 \midrule
 
-\multirow{1}{0.3\textwidth}{Software Decision} & -- \\
+\multirow{1}{0.3\textwidth}{Software Decision} & \mref{m8} \\
 \bottomrule
 
 \end{tabular}
@@ -341,13 +341,6 @@ to be implemented.
 \item[Implemented By:] FitCoachAR
 \end{description}
 
-\subsubsection{Signal Smoothing Module (\mref{m8})}
-\begin{description}
-\item[Secrets:] The filtering algorithms used to remove noise from landmark coordinates.
-\item[Services:] Provides a stable, non-jittery signal for downstream modules.
-\item[Implemented By:] FitCoachAR
-\end{description}
-
 \subsection{Software Decision Module}
 
 \begin{description}
@@ -359,8 +352,16 @@ to be implemented.
 \item[Implemented By:] --
 \end{description}
 
-\noindent No modules are currently classified under Software Decision; see
-Table~\ref{TblMH}.
+\subsubsection{Signal Smoothing Module (\mref{m8})}
+\begin{description}
+\item[Secrets:] The filtering algorithms used to remove noise from landmark
+  coordinates (e.g., Kalman filter vs.\ Savitzky--Golay). The choice of
+  algorithm is not dictated by the SRS --- it is a software-decision-level
+  choice made to help satisfy the NFR1 accuracy bound. This corresponds to
+  anticipated change AC4.
+\item[Services:] Provides a stable, non-jittery signal for downstream modules.
+\item[Implemented By:] FitCoachAR
+\end{description}
 
 \section{Traceability Matrix} \label{SecTM}
 
