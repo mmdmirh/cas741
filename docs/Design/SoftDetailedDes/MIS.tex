@@ -175,6 +175,10 @@ The following table is taken directly from the Module Guide document for this pr
 \subsection{Module}
 Browser-native Video Capture API (e.g., \texttt{getUserMedia})
 
+\subsection{Module Kind}
+Library (hardware-hiding wrapper; no client-visible state, delegates to
+the browser's \texttt{getUserMedia} service).
+
 \subsection{Uses}
 None.
 
@@ -216,6 +220,10 @@ Input from the hardware webcam sensor.
 
 \subsection{Module}
 Browser Canvas Rendering Module (\texttt{frontend/modules/m2\_display\_output.js})
+
+\subsection{Module Kind}
+Abstract Object. There is a single rendering context (the page canvas)
+with its own internal state; clients do not instantiate it.
 
 \subsection{Uses}
 None.
@@ -263,6 +271,10 @@ The visual display monitor / browser viewport.
 
 \subsection{Module}
 \texttt{m3\_video\_formatting} (\texttt{backend/modules/m3\_video\_formatting.py})
+
+\subsection{Module Kind}
+Library. Stateless encode/decode between raw image bytes and the
+Base64 transport representation.
 
 \subsection{Uses}
 M1 (Video Input)
@@ -315,6 +327,11 @@ Input bytes represent a valid compressed image (JPEG or PNG).
 
 \subsection{Module}
 \texttt{m4\_pose\_tracking} (\texttt{backend/modules/m4\_pose\_tracking.py})
+
+\subsection{Module Kind}
+Abstract Object. A single loaded pose-estimation backend instance is
+held as internal state; the module is imported and used directly
+rather than instantiated by clients.
 
 \subsection{Uses}
 M3 (Video Formatting), M8 (Signal Smoothing)
@@ -375,6 +392,10 @@ None.
 
 \subsection{Module}
 \texttt{m5\_kinematic\_engine} (\texttt{backend/modules/m5\_kinematic\_engine.py})
+
+\subsection{Module Kind}
+Library. Stateless computation: joint-angle and distance calculations
+from 3D point inputs, with no state kept between calls.
 
 \subsection{Uses}
 M4 (Pose Tracking)
@@ -451,6 +472,11 @@ None.
 
 \subsection{Module}
 \texttt{m6\_exercise\_state} (\texttt{backend/modules/m6\_exercise\_state.py})
+
+\subsection{Module Kind}
+Abstract Data Type. Each exercise session creates its own
+\texttt{ExerciseStateMachine} instance, each with its own
+\texttt{current\_state}, \texttt{rep\_count}, and per-rep angle bounds.
 
 \subsection{Uses}
 M5 (Kinematic Engine)
@@ -530,6 +556,10 @@ None.
 \subsection{Module}
 FitCoachAR Web Interface Renderer (\texttt{frontend/modules/m7\_ui\_rendering.js})
 
+\subsection{Module Kind}
+Library. Stateless JSON-to-DOM update; reads the current session
+state and emits UI updates without holding state of its own.
+
 \subsection{Uses}
 M6 (Exercise State)
 
@@ -576,6 +606,13 @@ Browser Application State / DOM elements.
 
 \subsection{Module}
 \texttt{m8\_signal\_smoothing} (\texttt{backend/modules/m8\_signal\_smoothing.py})
+
+\subsection{Module Kind}
+Abstract Data Type. Each smoothed channel (one per landmark
+coordinate, so 99 instances for a full 33-landmark skeleton) holds
+its own scalar Kalman state \texttt{x\_est}, \texttt{P}, \texttt{Q},
+\texttt{R}. The scalar types in \S10.4.1 are therefore per-instance
+state, not global state.
 
 \subsection{Uses}
 None
