@@ -55,6 +55,7 @@
 2026-04-15 & 1.3 & Final-doc consistency pass: added Hardware/Behaviour-Hiding subsection headers in Section 6; corrected module-to-requirement traceability (Table~\ref{TblRT}) for R1--R5\\
 2026-04-15 & 1.4 & Final Documentation release for CAS 741\\
 2026-04-20 & 1.5 & Moved M8 (Signal Smoothing) from Behaviour-Hiding to Software Decision; Kalman-filter algorithm is not in the SRS (AC4).\\
+2026-04-20 & 1.6 & Aligned \S6 prose and Table~\ref{TblRT} with M8's Software-Decision classification (removed M8 from the R2 trace; M8 traces to AC4 only).\\
 \bottomrule
 \end{tabularx}
 
@@ -249,11 +250,14 @@ The design of the system is intended to satisfy the requirements developed in
 the SRS. In this stage, the system is decomposed into modules. The connection
 between requirements and modules is listed in Table~\ref{TblRT}.
 
-Each module's design decision is driven by a corresponding SRS requirement.
-For example, the decision to use a Kalman filter (M8) was made to satisfy
-the stability requirement for real-time angle tracking. The decision to use
-MediaPipe (M4) was made to satisfy the accuracy requirements without
-requiring specialized hardware (e.g., depth cameras).
+Most modules' design decisions trace directly to an SRS requirement; those
+modules are classified as Behaviour-Hiding. For example, the decision to use
+MediaPipe (M4) was made to satisfy the keypoint-tracking requirement (R2)
+without requiring specialised hardware such as depth cameras. A few modules
+hide decisions that are \emph{not} in the SRS --- for instance, the choice of
+smoothing algorithm (M8) is a pure software-level decision (see AC4);
+M8 therefore traces to an Anticipated Change rather than to a functional
+requirement, and is classified as Software Decision.
 
 \section{Module Decomposition} \label{SecMD}
 
@@ -377,7 +381,7 @@ requirements and between the modules and the anticipated changes.
 \textbf{Req.} & \textbf{Modules}\\
 \midrule
 R1 (R\_Input) & \mref{m1}, \mref{m3}, \mref{m7}\\
-R2 (R\_Process) & \mref{m4}, \mref{m8}\\
+R2 (R\_Process) & \mref{m4}\\
 R3 (R\_Calc) & \mref{m5}\\
 R4 (R\_Verify) & \mref{m6}\\
 R5 (R\_Output) & \mref{m2}, \mref{m7}\\
